@@ -1,8 +1,111 @@
 @import "tailwindcss";
 
+/* Indian Classical Music App - Warm Light Aesthetic */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Light warm color palette inspired by Indian art */
+  --bg-primary: #faf6f0;
+  /* Warm off-white/cream */
+  --bg-secondary: #f5ece0;
+  /* Slightly darker cream */
+  --bg-tertiary: #ebe0d0;
+  /* Warm beige */
+  --bg-card: #fff9f2;
+  /* Card background - almost white */
+
+  /* Accent colors - inspired by Indian textiles and art */
+  --accent-saffron: #d4880f;
+  /* Deeper saffron for contrast on light bg */
+  --accent-gold: #b8941d;
+  /* Antique gold */
+  --accent-maroon: #9e2a4a;
+  /* Deep maroon */
+  --accent-rust: #c45a2d;
+  /* Terracotta/rust */
+  --accent-cream: #f5e6d3;
+  /* Cream/off-white */
+  --accent-beige: #d4c4a8;
+  /* Beige */
+
+  /* Text colors - darker for light background */
+  --text-primary: #2d1f14;
+  /* Deep brown */
+  --text-secondary: #5a4838;
+  /* Medium brown */
+  --text-muted: #8a7a68;
+  /* Muted brown */
+
+  /* Border */
+  --border-color: #d8cfc2;
+  /* Light warm border */
+  --border-light: #e8e0d4;
+  /* Even lighter */
+
+  /* For theming */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+
+  /* Motif opacity for light mode */
+  --motif-opacity: 0.05;
+
+  /* Motif color filter - soft saffron/terracotta tint */
+  --motif-filter: sepia(1) saturate(4) hue-rotate(340deg) brightness(0.85);
+
+  /* Content background with high opacity for readability */
+  --content-bg: rgba(253, 249, 241, 0.96);
+}
+
+/* Dark Mode - Indian Night Theme */
+[data-theme="dark"] {
+  /* Dark backgrounds with warm undertones */
+  --bg-primary: #1a1a2e;
+  /* Deep navy/indigo */
+  --bg-secondary: #16213e;
+  /* Darker blue */
+  --bg-tertiary: #0f3460;
+  /* Rich Indian blue */
+  --bg-card: #1f2544;
+  /* Card background */
+
+  /* Accent colors - brighter for dark mode */
+  --accent-saffron: #e8a930;
+  /* Bright saffron */
+  --accent-gold: #d4a821;
+  /* Bright gold */
+  --accent-maroon: #e94560;
+  /* Brighter maroon/pink */
+  --accent-rust: #e86f45;
+  /* Bright terracotta */
+  --accent-cream: #3a3a5a;
+  /* Dark cream substitute */
+  --accent-beige: #4a4a6a;
+  /* Dark beige substitute */
+
+  /* Text colors - lighter for dark background */
+  --text-primary: #f5f5f5;
+  /* Almost white */
+  --text-secondary: #c9c9d9;
+  /* Light gray-blue */
+  --text-muted: #8888a8;
+  /* Muted blue-gray */
+
+  /* Border */
+  --border-color: #3a3a5a;
+  /* Dark border */
+  --border-light: #2a2a4a;
+  /* Even darker */
+
+  /* For theming */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+
+  /* Motif opacity for dark mode */
+  --motif-opacity: 0.01;
+
+  /* Motif color filter - light golden yellow for dark mode */
+  --motif-filter: sepia(1) saturate(3) hue-rotate(35deg) brightness(1.8);
+
+  /* Content background with high opacity for readability */
+  --content-bg: rgba(26, 26, 46, 0.96);
 }
 
 @theme inline {
@@ -10,17 +113,248 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Custom colors for Tailwind */
+  --color-saffron: var(--accent-saffron);
+  --color-gold: var(--accent-gold);
+  --color-maroon: var(--accent-maroon);
+  --color-rust: var(--accent-rust);
+  --color-cream: var(--accent-cream);
+  --color-beige: var(--accent-beige);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Custom scrollbar with warm theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #b8a898;
+}
+
+/* String vibration animation - more pronounced */
+@keyframes string-vibrate {
+
+  0%,
+  100% {
+    transform: translateX(0) scaleX(1);
+  }
+
+  5% {
+    transform: translateX(-6px) scaleX(2);
+  }
+
+  10% {
+    transform: translateX(6px) scaleX(2);
+  }
+
+  15% {
+    transform: translateX(-5px) scaleX(1.8);
+  }
+
+  20% {
+    transform: translateX(5px) scaleX(1.8);
+  }
+
+  30% {
+    transform: translateX(-4px) scaleX(1.5);
+  }
+
+  40% {
+    transform: translateX(4px) scaleX(1.5);
+  }
+
+  50% {
+    transform: translateX(-3px) scaleX(1.3);
+  }
+
+  60% {
+    transform: translateX(2px) scaleX(1.2);
+  }
+
+  70% {
+    transform: translateX(-1.5px) scaleX(1.1);
+  }
+
+  80% {
+    transform: translateX(1px) scaleX(1.05);
+  }
+
+  90% {
+    transform: translateX(-0.5px) scaleX(1);
+  }
+}
+
+.string-plucked {
+  animation: string-vibrate 0.6s ease-out;
+}
+
+/* Pluck flash animation - smooth visible ripple effect */
+@keyframes pluck-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+
+  8% {
+    opacity: 0.8;
+    transform: scale(0.5);
+  }
+
+  25% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.3);
+  }
+
+  75% {
+    opacity: 0.25;
+    transform: scale(1.6);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+.animate-pluck-flash {
+  animation: pluck-flash 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Glow pulse for active elements */
+@keyframes glow-pulse {
+
+  0%,
+  100% {
+    box-shadow: 0 0 10px var(--accent-saffron);
+    opacity: 1;
+  }
+
+  50% {
+    box-shadow: 0 0 25px var(--accent-saffron);
+    opacity: 0.9;
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Subtle breathing for drone indicator */
+@keyframes breathe {
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* Indian pattern overlay (can be used as background) */
+.indian-pattern-overlay {
+  position: relative;
+  background-color: var(--bg-primary);
+}
+
+/* Motif background layer - fixed full screen */
+.motif-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 50;
+  opacity: var(--motif-opacity, 0.1);
+}
+
+.motif-background img {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  /* Apply theme color filter */
+  filter: var(--motif-filter);
+}
+
+/* Content sits above motif background */
+.indian-pattern-overlay>*:not(.motif-background) {
+  position: relative;
+  z-index: 10;
+}
+
+/* Alternative scattered pattern for variety */
+.indian-motifs-scattered {
+  position: relative;
+}
+
+.indian-motifs-scattered::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--motif-opacity);
+  background-image:
+    url('/motifs/paisley.png'),
+    url('/motifs/lotus.png');
+  background-size: 100px auto, 80px auto;
+  background-position: 0 0, 50px 50px;
+  background-repeat: repeat;
+}
+
+/* Shruti button base style */
+.shruti-button {
+  transition: all 0.15s ease;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+}
+
+.shruti-button:hover {
+  border-color: var(--accent-gold);
+  background: var(--bg-tertiary);
+  transform: translateY(-1px);
+}
+
+.shruti-button:active {
+  transform: translateY(0);
+}
+
+.shruti-button.active {
+  border-color: var(--accent-saffron);
+  box-shadow: 0 0 12px rgba(232, 168, 56, 0.3);
 }

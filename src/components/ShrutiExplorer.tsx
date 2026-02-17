@@ -17,6 +17,7 @@ interface ShrutiExplorerProps {
 }
 
 const SWARAS: SwaraName[] = ['Sa', 'Re', 'Ga', 'Ma', 'Pa', 'Dha', 'Ni'];
+const UPPER_SA_ID = 23;
 
 // Warmer colors for Indian aesthetic
 const SWARA_WARM_COLORS: Record<SwaraName, { bg: string; text: string; border: string }> = {
@@ -98,7 +99,8 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
 
         setActiveShruti(shruti.id);
         setDisplayedShruti(shruti);
-        playerRef.current.playNote(shruti.ratio, selectedOctave);
+        const octaveToPlay = shruti.id === UPPER_SA_ID ? selectedOctave + 1 : selectedOctave;
+        playerRef.current.playNote(shruti.ratio, octaveToPlay);
 
         // Reset active state after note plays
         setTimeout(() => setActiveShruti(null), 1500);
@@ -132,7 +134,7 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
             'k': 20, // n2
             'l': 21, // N1
             ';': 22, // N2
-            "'": 23, // Upper Sa (special case)
+            "'": UPPER_SA_ID, // Upper Sa (special case)
         };
 
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -147,8 +149,8 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
             if (shrutiId) {
                 e.preventDefault();
                 // Handle upper Sa specially
-                if (shrutiId === 23) {
-                    const upperSa = { ...SHRUTIS[0], id: 23, name: 'Upper Shadja', shortName: "S'" };
+                if (shrutiId === UPPER_SA_ID) {
+                    const upperSa = { ...SHRUTIS[0], id: UPPER_SA_ID, name: 'Upper Shadja', shortName: "S'" };
                     handleShrutiClick(upperSa);
                 } else {
                     const shruti = SHRUTIS.find(s => s.id === shrutiId);
@@ -275,7 +277,7 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                 {/* All 22 shrutis + upper Sa, wrapped and centered */}
                 <div className="flex flex-wrap gap-2 justify-center pb-4">
                     {/* Generate all shrutis in chromatic order with upper Sa at end */}
-                    {[...SHRUTIS, { ...SHRUTIS[0], id: 23, name: 'Upper Shadja', shortName: "S'" }].map((shruti, index) => {
+                    {[...SHRUTIS, { ...SHRUTIS[0], id: UPPER_SA_ID, name: 'Upper Shadja', shortName: "S'" }].map((shruti, index) => {
                         const colors = SWARA_WARM_COLORS[shruti.parentSwara];
                         const isUpperSa = index === SHRUTIS.length;
 

@@ -13,6 +13,7 @@ export { AppLayout } from './AppLayout';
 export { LearnPage } from './LearnPage';
 export { SettingsPage } from './SettingsPage';
 export { MotifBackground } from './MotifBackground';
+export { SectionHeader } from './SectionHeader';
 
 // Quiz components
 export * from './quiz';

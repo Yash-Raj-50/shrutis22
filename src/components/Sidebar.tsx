@@ -11,6 +11,10 @@ export type SectionId = 'tanpura' | 'explore' | 'learn' | 'settings';
 interface SidebarProps {
     activeSection: SectionId;
     onSectionChange: (section: SectionId) => void;
+    isOpen: boolean;
+    isCollapsed: boolean;
+    onClose: () => void;
+    onToggleCollapse: () => void;
 }
 
 interface NavItem {
@@ -76,66 +80,143 @@ const navItems: NavItem[] = [
     },
 ];
 
-export function Sidebar({ activeSection, onSectionChange }: SidebarProps) {
+export function Sidebar({
+    activeSection,
+    onSectionChange,
+    isOpen,
+    isCollapsed,
+    onClose,
+    onToggleCollapse,
+}: SidebarProps) {
     return (
-        <aside className="w-72 h-screen bg-[var(--bg-secondary)] border-l border-[var(--border-color)] flex flex-col relative z-10">
-            {/* Logo/Header */}
-            <div className="p-6 border-b border-[var(--border-color)] text-center">
-                <h1 className="text-4xl font-bold text-[var(--accent-saffron)] font-serif">
-                    २२ श्रुति
-                </h1>
-                <p className="text-lg font-medium text-[var(--text-secondary)] mt-2">
-                    22 Shrutis
-                </p>
-                <p className="text-sm text-[var(--text-muted)] mt-1 italic">
-                    Learn to Identify Notes
-                </p>
-            </div>
+        <>
+            <div
+                className={`
+                    fixed inset-0 z-30 bg-black/40 transition-opacity duration-300 lg:hidden
+                    ${isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}
+                `}
+                onClick={onClose}
+                aria-hidden="true"
+            />
 
-            {/* Navigation */}
-            <nav className="flex-1 p-4 space-y-2">
-                {navItems.map(item => (
+            <aside
+                className={`
+                    fixed right-0 top-0 z-40 h-screen bg-[var(--bg-secondary)] border-l border-[var(--border-color)] flex flex-col sidebar-motif-panel
+                    transition-all duration-300 ease-out lg:static lg:z-10
+                    ${isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
+                    ${isCollapsed ? 'w-24' : 'w-72'}
+                `}
+                data-collapsed={isCollapsed}
+            >
+                {/* Logo/Header */}
+                <div className={`border-b border-[var(--border-color)] ${isCollapsed ? 'p-4' : 'p-6'} text-center relative`}>
+                    <div className="flex items-center justify-between lg:hidden mb-4">
+                        <span className="text-sm font-medium text-[var(--text-secondary)]">Navigation</span>
+                        <button
+                            onClick={onClose}
+                            className="inline-flex items-center justify-center w-9 h-9 rounded-lg border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+                            aria-label="Close sidebar"
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
                     <button
-                        key={item.id}
-                        onClick={() => item.available && onSectionChange(item.id)}
-                        disabled={!item.available}
-                        className={`
-                            w-full flex items-center gap-3 px-4 py-3 rounded-lg
-                            transition-all duration-200 text-left
-                            ${activeSection === item.id
-                                ? 'bg-[var(--accent-saffron)]/20 text-[var(--accent-saffron)] border border-[var(--accent-saffron)]/30'
-                                : item.available
-                                    ? 'hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                                    : 'opacity-40 cursor-not-allowed text-[var(--text-muted)]'
-                            }
-                        `}
+                        onClick={onToggleCollapse}
+                        className="hidden lg:inline-flex absolute top-4 left-4 items-center justify-center w-9 h-9 rounded-lg border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-tertiary)] transition-colors"
+                        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     >
-                        <span className={activeSection === item.id ? 'text-[var(--accent-saffron)]' : ''}>
-                            {item.icon}
-                        </span>
-                        <div>
-                            <div className="font-medium text-sm">{item.label}</div>
-                            <div className="text-xs opacity-70">{item.hindiLabel}</div>
-                        </div>
-                        {!item.available && (
-                            <span className="ml-auto text-xs bg-[var(--bg-tertiary)] px-2 py-0.5 rounded">
-                                Soon
-                            </span>
-                        )}
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            {isCollapsed ? (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            ) : (
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            )}
+                        </svg>
                     </button>
-                ))}
-            </nav>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-[var(--border-color)]">
-                <div className="text-xs text-[var(--text-muted)]">
-                    <p>Version 0.5.0</p>
-                    <p className="mt-1 opacity-70">Hindustani Classical</p>
+                    <h1 className={`${isCollapsed ? 'text-2xl' : 'text-4xl'} font-bold text-[var(--accent-saffron)] font-serif transition-all duration-300`}>
+                        {isCollapsed ? '२२' : '२२ श्रुति'}
+                    </h1>
+                    {!isCollapsed && (
+                        <>
+                            <p className="text-lg font-medium text-[var(--text-secondary)] mt-2">
+                                22 Shrutis
+                            </p>
+                            <p className="text-sm text-[var(--text-muted)] mt-1 italic">
+                                Learn to Identify Notes
+                            </p>
+                        </>
+                    )}
+                    {isCollapsed && (
+                        <p className="text-xs text-[var(--text-muted)] mt-2">22</p>
+                    )}
                 </div>
-            </div>
 
-            {/* Decorative Indian pattern */}
-            <div className="h-2 bg-gradient-to-r from-[var(--accent-saffron)] via-[var(--accent-rust)] to-[var(--accent-maroon)]" />
-        </aside>
+                {/* Navigation */}
+                <nav className="flex-1 p-4 space-y-2">
+                    {navItems.map(item => (
+                        <button
+                            key={item.id}
+                            onClick={() => {
+                                if (item.available) {
+                                    onSectionChange(item.id);
+                                    onClose();
+                                }
+                            }}
+                            disabled={!item.available}
+                            className={`
+                            w-full flex items-center px-4 py-3 rounded-lg
+                            transition-all duration-200 text-left
+                            ${isCollapsed ? 'justify-center gap-0' : 'gap-3'}
+                            ${activeSection === item.id
+                                    ? 'bg-[var(--bg-tertiary)] text-[var(--text-primary)] font-semibold'
+                                    : item.available
+                                        ? 'hover:bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                                        : 'opacity-40 cursor-not-allowed text-[var(--text-muted)]'
+                                }
+                        `}
+                            title={isCollapsed ? item.label : undefined}
+                        >
+                            <span className={activeSection === item.id ? 'text-[var(--accent-saffron)]' : ''}>
+                                {item.icon}
+                            </span>
+                            {!isCollapsed && (
+                                <div>
+                                    <div className={`${activeSection === item.id ? 'font-semibold' : 'font-medium'} text-sm`}>{item.label}</div>
+                                    <div className="text-xs opacity-70">{item.hindiLabel}</div>
+                                </div>
+                            )}
+                            {!item.available && !isCollapsed && (
+                                <span className="ml-auto text-xs bg-[var(--bg-tertiary)] px-2 py-0.5 rounded">
+                                    Soon
+                                </span>
+                            )}
+                        </button>
+                    ))}
+                </nav>
+
+                {/* Footer */}
+                <div className={`border-t border-[var(--border-color)] ${isCollapsed ? 'p-3' : 'p-4'}`}>
+                    {isCollapsed ? (
+                        <div className="text-center text-[10px] text-[var(--text-muted)] leading-tight">
+                            <p>v0.6</p>
+                            <p className="mt-1 opacity-70">HC</p>
+                        </div>
+                    ) : (
+                        <div className="text-xs text-[var(--text-muted)] space-y-1">
+                            <p>Version 0.6.0</p>
+                            <p className="opacity-70">Hindustani Classical Music</p>
+                            <p className="opacity-70">Built with ♪ for music learners. By Yash</p>
+                        </div>
+                    )}
+                </div>
+
+                {/* Decorative Indian pattern */}
+                <div className="h-2 bg-gradient-to-r from-[var(--accent-saffron)] via-[var(--accent-rust)] to-[var(--accent-maroon)]" />
+            </aside>
+        </>
     );
 }

@@ -5,7 +5,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { QuizStage, QuizSession, QuizQuestion, QuizFeedback } from '@/types/quiz';
+import { QuizStage, QuizSession, QuizFeedback } from '@/types/quiz';
 import { createQuizSession, checkAnswer, getStageById } from '@/engine/quizEngine';
 import { getQuizAudioEngine } from '@/audio/QuizAudioEngine';
 import { getShrutiById } from '@/constants/shrutis';
@@ -25,25 +25,30 @@ export function QuizPlayer({
     onComplete,
     onExit,
 }: QuizPlayerProps) {
-    const [session, setSession] = useState<QuizSession | null>(null);
-    const [stage, setStage] = useState<QuizStage | null>(null);
+    const stage = getStageById(stageId) ?? null;
+    const [session, setSession] = useState<QuizSession | null>(() =>
+        stage ? createQuizSession(stage) : null
+    );
     const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
     const [feedback, setFeedback] = useState<QuizFeedback | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [showingFeedback, setShowingFeedback] = useState(false);
     const [replayCount, setReplayCount] = useState(0);
     const audioRef = useRef(getQuizAudioEngine(baseFrequency, volume));
+    const autoPlayedQuestionIdRef = useRef<string | null>(null);
+    const isPlayingRef = useRef(false);
 
     const maxReplays = 3;
 
-    // Initialize session
-    useEffect(() => {
-        const foundStage = getStageById(stageId);
-        if (foundStage) {
-            setStage(foundStage);
-            setSession(createQuizSession(foundStage));
-        }
-    }, [stageId]);
+    const resetSession = useCallback((quizStage: QuizStage) => {
+        setSession(createQuizSession(quizStage));
+        setSelectedAnswers([]);
+        setFeedback(null);
+        setIsPlaying(false);
+        setShowingFeedback(false);
+        setReplayCount(0);
+        autoPlayedQuestionIdRef.current = null;
+    }, []);
 
     // Update audio settings
     useEffect(() => {
@@ -53,6 +58,16 @@ export function QuizPlayer({
 
     // Get current question
     const currentQuestion = session?.questions[session.currentQuestionIndex];
+    const currentQuestionId = currentQuestion?.id;
+    const currentQuestionRef = useRef(currentQuestion);
+
+    useEffect(() => {
+        currentQuestionRef.current = currentQuestion;
+    }, [currentQuestion]);
+
+    useEffect(() => {
+        isPlayingRef.current = isPlaying;
+    }, [isPlaying]);
 
     // Play the question audio
     const playQuestion = useCallback(async () => {
@@ -77,11 +92,40 @@ export function QuizPlayer({
 
     // Auto-play question on new question
     useEffect(() => {
-        if (currentQuestion && !showingFeedback) {
-            const timer = setTimeout(() => playQuestion(), 500);
-            return () => clearTimeout(timer);
+        if (!currentQuestionId || showingFeedback) {
+            return;
         }
-    }, [currentQuestion?.id, showingFeedback]);
+
+        if (autoPlayedQuestionIdRef.current === currentQuestionId) {
+            return;
+        }
+
+        autoPlayedQuestionIdRef.current = currentQuestionId;
+
+        const timer = setTimeout(() => {
+            const audio = audioRef.current;
+
+            const runAutoPlay = async () => {
+                const question = currentQuestionRef.current;
+                if (!question || isPlayingRef.current) return;
+
+                setIsPlaying(true);
+                await audio.initialize();
+
+                if (question.correctShrutis.length === 1) {
+                    await audio.playShruti(question.correctShrutis[0]);
+                } else {
+                    await audio.playSequence(question.correctShrutis, 600);
+                }
+
+                setTimeout(() => setIsPlaying(false), 800);
+            };
+
+            runAutoPlay();
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [currentQuestionId, showingFeedback]);
 
     // Handle replay
     const handleReplay = useCallback(() => {
@@ -90,6 +134,12 @@ export function QuizPlayer({
             playQuestion();
         }
     }, [replayCount, isPlaying, playQuestion]);
+
+    const handleRestart = useCallback(() => {
+        if (stage) {
+            resetSession(stage);
+        }
+    }, [stage, resetSession]);
 
     // Handle shruti selection for single-shruti questions
     const handleSingleSelect = useCallback(async (shrutiId: number) => {
@@ -240,25 +290,35 @@ export function QuizPlayer({
     return (
         <div className="max-w-2xl mx-auto">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
-                <button
-                    onClick={onExit}
-                    className="flex items-center gap-2 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Exit
-                </button>
-
-                <div className="text-center">
+            <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-[auto_1fr_auto_auto] sm:items-center sm:gap-4">
+                <div className="col-span-2 text-center min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-1">
                     <h2 className="text-lg font-bold text-[var(--text-primary)]">{stage.name}</h2>
                     <p className="text-sm text-[var(--accent-rust)]">{stage.hindiName}</p>
                 </div>
 
-                <div className="text-right">
+                <button
+                    onClick={onExit}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors sm:justify-start"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back
+                </button>
+
+                <button
+                    onClick={handleRestart}
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] transition-colors sm:justify-start"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Restart
+                </button>
+
+                <div className="col-span-2 flex items-center justify-center rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] px-4 py-2 sm:col-span-1 sm:justify-end sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
                     <div className="text-sm text-[var(--text-muted)]">Score</div>
-                    <div className="text-lg font-bold text-[var(--text-primary)]">
+                    <div className="ml-2 text-lg font-bold text-[var(--text-primary)] sm:ml-0">
                         {session.correctCount}/{session.currentQuestionIndex}
                     </div>
                 </div>
@@ -328,14 +388,14 @@ export function QuizPlayer({
                     <div className={`
                         text-center py-4 px-6 rounded-xl mb-6 transition-all duration-300
                         ${feedback.isCorrect
-                            ? 'bg-green-50 border border-green-200'
-                            : 'bg-red-50 border border-red-200'
+                            ? 'bg-[var(--quiz-success-bg)] border border-[var(--quiz-success-border)]'
+                            : 'bg-[var(--quiz-error-bg)] border border-[var(--quiz-error-border)]'
                         }
                     `}>
-                        <div className={`text-2xl mb-2 ${feedback.isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                        <div className={`text-2xl mb-2 ${feedback.isCorrect ? 'text-[var(--quiz-success-text)]' : 'text-[var(--quiz-error-text)]'}`}>
                             {feedback.isCorrect ? '✓' : '✗'}
                         </div>
-                        <p className={`font-medium ${feedback.isCorrect ? 'text-green-700' : 'text-red-700'}`}>
+                        <p className={`font-medium ${feedback.isCorrect ? 'text-[var(--quiz-success-text)]' : 'text-[var(--quiz-error-text)]'}`}>
                             {feedback.message}
                         </p>
                         {!feedback.isCorrect && (
@@ -371,20 +431,46 @@ export function QuizPlayer({
                                     p-4 rounded-xl border-2 transition-all duration-200 relative
                                     ${showingFeedback
                                         ? isCorrectAnswer
-                                            ? 'bg-green-100 border-green-400'
+                                            ? 'bg-[var(--quiz-success-bg)] border-[var(--quiz-success-border)]'
                                             : isWrongSelected
-                                                ? 'bg-red-100 border-red-400'
+                                                ? 'bg-[var(--quiz-error-bg)] border-[var(--quiz-error-border)]'
                                                 : 'bg-[var(--bg-tertiary)] border-[var(--border-light)] opacity-50'
                                         : isSelected
-                                            ? 'bg-[var(--accent-cream)] border-[var(--accent-saffron)]'
+                                            ? 'bg-[var(--quiz-selected-bg)] border-[var(--quiz-selected-border)]'
                                             : 'bg-[var(--bg-secondary)] border-[var(--border-color)] hover:border-[var(--accent-saffron)] hover:bg-[var(--bg-card)]'
                                     }
                                 `}
                             >
-                                <div className="text-xl font-bold text-[var(--text-primary)]">
+                                <div
+                                    className="text-xl font-bold"
+                                    style={{
+                                        color: showingFeedback
+                                            ? isCorrectAnswer
+                                                ? 'var(--quiz-success-text)'
+                                                : isWrongSelected
+                                                    ? 'var(--quiz-error-text)'
+                                                    : 'var(--text-primary)'
+                                            : isSelected
+                                                ? 'var(--quiz-selected-text)'
+                                                : 'var(--text-primary)'
+                                    }}
+                                >
                                     {shruti.shortName}
                                 </div>
-                                <div className="text-xs text-[var(--text-muted)] mt-1">
+                                <div
+                                    className="text-xs mt-1"
+                                    style={{
+                                        color: showingFeedback
+                                            ? isCorrectAnswer
+                                                ? 'var(--quiz-success-text)'
+                                                : isWrongSelected
+                                                    ? 'var(--quiz-error-text)'
+                                                    : 'var(--text-muted)'
+                                            : isSelected
+                                                ? 'var(--quiz-selected-text)'
+                                                : 'var(--text-muted)'
+                                    }}
+                                >
                                     {shruti.name.split(' ')[0]}
                                 </div>
 

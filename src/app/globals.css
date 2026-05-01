@@ -2,56 +2,83 @@
 
 /* Indian Classical Music App - Warm Light Aesthetic */
 :root {
-  /* Light warm color palette inspired by Indian art */
-  --bg-primary: #faf6f0;
-  /* Warm off-white/cream */
-  --bg-secondary: #f5ece0;
-  /* Slightly darker cream */
-  --bg-tertiary: #ebe0d0;
-  /* Warm beige */
-  --bg-card: #fff9f2;
-  /* Card background - almost white */
+  /* Light palette with stronger contrast and clearer surfaces */
+  --bg-primary: #f3ede3;
+  /* Warm canvas */
+  --bg-secondary: #e3d0b4;
+  /* Distinct panel tone */
+  --bg-tertiary: #d4ba95;
+  /* Interactive surface tone */
+  --bg-card: #fffaf2;
+  /* Elevated card surface */
 
   /* Accent colors - inspired by Indian textiles and art */
-  --accent-saffron: #d4880f;
-  /* Deeper saffron for contrast on light bg */
-  --accent-gold: #b8941d;
+  --accent-saffron: #b86c00;
+  /* Rich saffron with stronger contrast */
+  --accent-gold: #8f6a00;
   /* Antique gold */
-  --accent-maroon: #9e2a4a;
+  --accent-maroon: #8a2940;
   /* Deep maroon */
-  --accent-rust: #c45a2d;
-  /* Terracotta/rust */
-  --accent-cream: #f5e6d3;
-  /* Cream/off-white */
-  --accent-beige: #d4c4a8;
-  /* Beige */
+  --accent-rust: #a94f1f;
+  /* Burnt terracotta */
+  --accent-cream: #f3dfc5;
+  /* Warm highlight wash */
+  --accent-beige: #c9ae86;
+  /* Structural beige */
 
   /* Text colors - darker for light background */
-  --text-primary: #2d1f14;
-  /* Deep brown */
-  --text-secondary: #5a4838;
-  /* Medium brown */
-  --text-muted: #8a7a68;
-  /* Muted brown */
+  --text-primary: #20150d;
+  /* High-contrast brown */
+  --text-secondary: #38281c;
+  /* Body copy */
+  --text-muted: #5a4738;
+  /* Muted but readable */
 
   /* Border */
-  --border-color: #d8cfc2;
-  /* Light warm border */
-  --border-light: #e8e0d4;
-  /* Even lighter */
+  --border-color: #b99c75;
+  /* Stronger edge separation */
+  --border-light: #ceb592;
+  /* Supporting border */
 
   /* For theming */
   --background: var(--bg-primary);
   --foreground: var(--text-primary);
 
   /* Motif opacity for light mode */
-  --motif-opacity: 0.05;
+  --motif-opacity: 0;
 
   /* Motif color filter - soft saffron/terracotta tint */
   --motif-filter: sepia(1) saturate(4) hue-rotate(340deg) brightness(0.85);
 
   /* Content background with high opacity for readability */
-  --content-bg: rgba(253, 249, 241, 0.96);
+  --content-bg: rgba(255, 250, 242, 0.99);
+
+  /* Selection and quiz-state colors */
+  --selection-bg: #c98318;
+  --selection-text: #20150d;
+  --quiz-selected-bg: #f1dfc7;
+  --quiz-selected-border: #b86c00;
+  --quiz-selected-text: #20150d;
+  --quiz-success-bg: #dcfce7;
+  --quiz-success-border: #86efac;
+  --quiz-success-text: #166534;
+  --quiz-error-bg: #fee2e2;
+  --quiz-error-border: #fca5a5;
+  --quiz-error-text: #b91c1c;
+  --quiz-completed-card-bg: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  --quiz-completed-card-border: #86efac;
+  --quiz-completed-pill-bg: #dcfce7;
+  --quiz-completed-pill-text: #166534;
+  --quiz-completed-icon-bg: #dcfce7;
+  --quiz-completed-icon-text: #166534;
+  --danger-bg: #fef2f2;
+  --danger-bg-hover: #fee2e2;
+  --danger-border: #fca5a5;
+  --danger-text: #b91c1c;
+  --danger-muted: #dc2626;
+  --danger-solid: #dc2626;
+  --danger-solid-hover: #b91c1c;
+  --danger-soft-bg: #fee2e2;
 }
 
 /* Dark Mode - Indian Night Theme */
@@ -106,6 +133,33 @@
 
   /* Content background with high opacity for readability */
   --content-bg: rgba(26, 26, 46, 0.96);
+
+  /* Selection and quiz-state colors tuned for dark mode */
+  --selection-bg: #f2c063;
+  --selection-text: #1a1a2e;
+  --quiz-selected-bg: #f2c063;
+  --quiz-selected-border: #ffd98a;
+  --quiz-selected-text: #1a1a2e;
+  --quiz-success-bg: rgba(34, 197, 94, 0.2);
+  --quiz-success-border: rgba(74, 222, 128, 0.65);
+  --quiz-success-text: #dcfce7;
+  --quiz-error-bg: rgba(239, 68, 68, 0.2);
+  --quiz-error-border: rgba(252, 165, 165, 0.65);
+  --quiz-error-text: #fee2e2;
+  --quiz-completed-card-bg: linear-gradient(135deg, rgba(34, 197, 94, 0.18) 0%, rgba(16, 185, 129, 0.12) 100%);
+  --quiz-completed-card-border: rgba(74, 222, 128, 0.65);
+  --quiz-completed-pill-bg: rgba(34, 197, 94, 0.2);
+  --quiz-completed-pill-text: #dcfce7;
+  --quiz-completed-icon-bg: rgba(34, 197, 94, 0.18);
+  --quiz-completed-icon-text: #bbf7d0;
+  --danger-bg: rgba(239, 68, 68, 0.14);
+  --danger-bg-hover: rgba(239, 68, 68, 0.2);
+  --danger-border: rgba(252, 165, 165, 0.45);
+  --danger-text: #fecaca;
+  --danger-muted: #fca5a5;
+  --danger-solid: #dc2626;
+  --danger-solid-hover: #ef4444;
+  --danger-soft-bg: rgba(239, 68, 68, 0.16);
 }
 
 @theme inline {
@@ -132,6 +186,11 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+::selection {
+  background: var(--selection-bg);
+  color: var(--selection-text);
 }
 
 /* Custom scrollbar with warm theme */
@@ -291,6 +350,7 @@ body {
 
 /* Motif background layer - fixed full screen */
 .motif-background {
+  display: none;
   position: fixed;
   top: 0;
   left: 0;
@@ -301,6 +361,50 @@ body {
   pointer-events: none;
   z-index: 50;
   opacity: var(--motif-opacity, 0.1);
+}
+
+[data-theme="dark"] .motif-background {
+  display: block;
+}
+
+.sidebar-motif-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-motif-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.1;
+  background-image:
+    url('/motifs/paisley.png'),
+    url('/motifs/lotus.png'),
+    url('/motifs/mandala.png');
+  background-repeat: repeat-y, repeat-y, repeat-y;
+  background-size: 92px auto, 84px auto, 116px auto;
+  background-position: right -20px top 56px, left -24px top 220px, center top 520px;
+  filter: sepia(1) saturate(3.1) hue-rotate(338deg) brightness(0.92);
+}
+
+.sidebar-motif-panel[data-collapsed="true"]::before {
+  background-size: 48px auto, 44px auto, 60px auto;
+  background-position: right -8px top 28px, left -12px top 110px, center top 260px;
+}
+
+[data-theme="dark"] .sidebar-motif-panel::before {
+  opacity: 0.08;
+  filter: brightness(0) invert(1) opacity(0.9);
+}
+
+[data-theme="dark"] .sidebar-motif-panel[data-collapsed="true"]::before {
+  opacity: 0.08;
+}
+
+.sidebar-motif-panel>* {
+  position: relative;
+  z-index: 1;
 }
 
 .motif-background img {
@@ -357,4 +461,36 @@ body {
 .shruti-button.active {
   border-color: var(--accent-saffron);
   box-shadow: 0 0 12px rgba(232, 168, 56, 0.3);
+}
+
+@keyframes note-pill-enter {
+  0% {
+    opacity: 0;
+    transform: translateX(10px) scale(0.92);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.animate-note-pill-enter {
+  animation: note-pill-enter 220ms ease-out;
+}
+
+@keyframes note-feed-shift {
+  0% {
+    opacity: 0.92;
+    transform: translateX(14px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-note-feed-shift {
+  animation: note-feed-shift 240ms ease-out;
 }

@@ -6,6 +6,8 @@ import * as Tone from 'tone';
 import { calculateFrequency } from '@/types';
 import { getShrutiById } from '@/constants/shrutis';
 
+const OUTPUT_GAIN_BOOST = 2.75;
+
 /**
  * QuizAudioEngine - Plays individual notes or sequences for quiz questions
  * Uses PluckSynth for authentic Indian string sound
@@ -14,13 +16,18 @@ export class QuizAudioEngine {
     private synth: Tone.PluckSynth | null = null;
     private gain: Tone.Gain | null = null;
     private reverb: Tone.Reverb | null = null;
+    private limiter: Tone.Limiter | null = null;
     private isInitialized = false;
     private baseFrequency: number;
     private volume: number;
 
-    constructor(baseFrequency: number = 261.63, volume: number = 0.7) {
+    constructor(baseFrequency: number = 261.63, volume: number = 1) {
         this.baseFrequency = baseFrequency;
         this.volume = volume;
+    }
+
+    private getOutputVolume(volume: number): number {
+        return Math.max(0, volume * OUTPUT_GAIN_BOOST);
     }
 
     /**
@@ -31,11 +38,12 @@ export class QuizAudioEngine {
 
         await Tone.start();
 
-        this.gain = new Tone.Gain(this.volume);
+        this.gain = new Tone.Gain(this.getOutputVolume(this.volume));
         this.reverb = new Tone.Reverb({
             decay: 4,
             wet: 0.3,
         });
+        this.limiter = new Tone.Limiter(-6);
 
         await this.reverb.generate();
 
@@ -48,7 +56,8 @@ export class QuizAudioEngine {
 
         this.synth.connect(this.gain);
         this.gain.connect(this.reverb);
-        this.reverb.toDestination();
+        this.reverb.connect(this.limiter);
+        this.limiter.toDestination();
 
         this.isInitialized = true;
     }
@@ -66,7 +75,7 @@ export class QuizAudioEngine {
     setVolume(vol: number): void {
         this.volume = vol;
         if (this.gain) {
-            this.gain.gain.value = vol;
+            this.gain.gain.value = this.getOutputVolume(vol);
         }
     }
 
@@ -146,6 +155,10 @@ export class QuizAudioEngine {
             this.reverb.dispose();
             this.reverb = null;
         }
+        if (this.limiter) {
+            this.limiter.dispose();
+            this.limiter = null;
+        }
         this.isInitialized = false;
     }
 
@@ -162,7 +175,7 @@ let quizAudioInstance: QuizAudioEngine | null = null;
 
 export function getQuizAudioEngine(
     baseFrequency: number = 261.63,
-    volume: number = 0.7
+    volume: number = 1
 ): QuizAudioEngine {
     if (!quizAudioInstance) {
         quizAudioInstance = new QuizAudioEngine(baseFrequency, volume);

@@ -14,6 +14,7 @@ import {
     PlayButton,
 } from '@/components';
 import { getShrutiById } from '@/constants/shrutis';
+import { SectionHeader } from './SectionHeader';
 
 interface GlobalAudioSettings {
     baseFrequency: number;
@@ -143,14 +144,11 @@ export function TanpuraSection({ globalSettings, onSettingsChange }: TanpuraSect
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b border-[var(--border-color)]">
-                <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-                    तानपुरा • Tanpura Drone
-                </h2>
-                <p className="text-sm text-[var(--text-muted)] mt-1">
-                    Continuous drone for practice and performance
-                </p>
-            </div>
+            <SectionHeader
+                title="Tanpura Drone"
+                hindiTitle="तानपुरा"
+                description="Continuous drone for practice, tuning, and listening."
+            />
 
             {/* Main content */}
             <div className="flex-1 overflow-y-auto">

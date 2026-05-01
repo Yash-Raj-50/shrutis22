@@ -12,10 +12,10 @@ import {
     getStageById,
     getNextStage,
     initializeProgress,
-    updateProgress,
-    createQuizSession
+    updateProgress
 } from '@/engine/quizEngine';
 import { StageList, QuizPlayer, QuizResults } from './quiz';
+import { SectionHeader } from './SectionHeader';
 
 // Storage key for progress
 const PROGRESS_STORAGE_KEY = '22shrutis-quiz-progress';
@@ -114,24 +114,19 @@ export function LearnPage({ baseFrequency, volume }: LearnPageProps) {
     const overallProgress = Math.round((totalCompleted / totalStages) * 100);
 
     return (
-        <div className="h-full overflow-y-auto">
-            <div className="max-w-5xl mx-auto p-6">
+        <div className="h-full flex flex-col">
+            {view === 'stages' && (
+                <SectionHeader
+                    title="Learn & Quiz"
+                    hindiTitle="सीखें और अभ्यास करें"
+                    description="Train your ears to recognize the 22 shrutis through progressive stages."
+                />
+            )}
+
+            <div className="flex-1 overflow-y-auto">
+                <div className="max-w-5xl mx-auto p-6">
                 {view === 'stages' && (
                     <>
-                        {/* Header */}
-                        <div className="mb-8">
-                            <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-                                Learn & Quiz
-                            </h1>
-                            <p className="text-lg text-[var(--accent-rust)]">
-                                सीखें और अभ्यास करें
-                            </p>
-                            <p className="text-[var(--text-secondary)] mt-2">
-                                Train your ears to recognize the 22 shrutis through progressive stages.
-                                Listen carefully and identify the notes you hear.
-                            </p>
-                        </div>
-
                         {/* Progress Overview */}
                         <div className="bg-[var(--bg-card)] rounded-xl p-6 mb-8 border border-[var(--border-color)]">
                             <div className="flex items-center justify-between mb-4">
@@ -217,6 +212,7 @@ export function LearnPage({ baseFrequency, volume }: LearnPageProps) {
 
                 {view === 'playing' && currentStageId && (
                     <QuizPlayer
+                        key={currentStageId}
                         stageId={currentStageId}
                         baseFrequency={baseFrequency}
                         volume={volume}
@@ -234,6 +230,7 @@ export function LearnPage({ baseFrequency, volume }: LearnPageProps) {
                         onExit={handleExit}
                     />
                 )}
+            </div>
             </div>
         </div>
     );

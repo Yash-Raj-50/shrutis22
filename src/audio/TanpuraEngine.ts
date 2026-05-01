@@ -6,6 +6,8 @@ import * as Tone from 'tone';
 import { TanpuraConfig, TanpuraString, calculateFrequency } from '@/types';
 import { getShrutiById } from '@/constants/shrutis';
 
+const OUTPUT_GAIN_BOOST = 3.25;
+
 /**
  * TanpuraEngine - Authentic tanpura drone using Karplus-Strong synthesis
  *
@@ -86,6 +88,10 @@ export class TanpuraEngine {
         this.isInitialized = true;
     }
 
+    private getOutputVolume(volume: number): number {
+        return Math.max(0, volume * OUTPUT_GAIN_BOOST);
+    }
+
     /**
      * Get frequency for a string
      */
@@ -117,7 +123,7 @@ export class TanpuraEngine {
         if (this.config.masterVolume === 0) return;
 
         // Ensure master gain is set for manual plucking
-        this.masterGain.gain.value = this.config.masterVolume;
+        this.masterGain.gain.value = this.getOutputVolume(this.config.masterVolume);
         this.doPluck(stringIndex);
     }
 
@@ -148,7 +154,7 @@ export class TanpuraEngine {
         if (!this.isInitialized || this.isPlaying) return;
         if (this.config.masterVolume === 0) return;
 
-        this.masterGain.gain.value = this.config.masterVolume;
+        this.masterGain.gain.value = this.getOutputVolume(this.config.masterVolume);
         this.isPlaying = true;
         this.startPluckCycle();
     }
@@ -202,7 +208,7 @@ export class TanpuraEngine {
         this.config = { ...this.config, ...newConfig };
 
         if (newConfig.masterVolume !== undefined) {
-            const vol = newConfig.masterVolume === 0 ? 0 : newConfig.masterVolume;
+            const vol = newConfig.masterVolume === 0 ? 0 : this.getOutputVolume(newConfig.masterVolume);
             this.masterGain.gain.rampTo(vol, 0.1);
         }
 
@@ -239,7 +245,7 @@ export class TanpuraEngine {
 
     setMasterVolume(volume: number): void {
         this.config.masterVolume = Math.max(0, Math.min(1, volume));
-        const vol = this.config.masterVolume === 0 ? 0 : this.config.masterVolume;
+        const vol = this.config.masterVolume === 0 ? 0 : this.getOutputVolume(this.config.masterVolume);
         this.masterGain.gain.rampTo(vol, 0.1);
     }
 
@@ -304,7 +310,7 @@ export class TanpuraEngine {
 export function createDefaultTanpuraConfig(): TanpuraConfig {
     return {
         baseFrequency: 261.63, // C4
-        masterVolume: 0.7, // Higher default volume
+        masterVolume: 1, // Full default volume
         tempo: 60,
         resonance: 0.5, // 50% sustain by default - already very resonant
         isPlaying: false,
@@ -329,7 +335,7 @@ export class ShrutiPlayer {
     private limiter: Tone.Limiter | null = null;
     private isInitialized = false;
     private baseFrequency: number = 261.63;
-    private volume: number = 0.7;
+    private volume: number = 1;
     private resonance: number = 1.0;
 
     async initialize(): Promise<void> {
@@ -346,17 +352,14 @@ export class ShrutiPlayer {
             rolloff: -24,
         });
 
-        this.gain = new Tone.Gain(this.volume);
+        this.gain = new Tone.Gain(this.getOutputVolume(this.volume));
         this.limiter = new Tone.Limiter(-6);
-
-        const resonanceValue = 0.99 + (this.resonance * 0.008); // 0.99 to 0.998
-        const releaseValue = 8 + (this.resonance * 8); // 8 to 16 seconds
 
         this.pluckSynth = new Tone.PluckSynth({
             attackNoise: 0.2,
-            dampening: 350, // Lower for clearer bass notes
-            resonance: resonanceValue,
-            release: releaseValue,
+            dampening: 350,
+            resonance: 0.99 + (this.resonance * 0.008),
+            release: 8 + (this.resonance * 8),
         });
 
         this.pluckSynth.connect(this.filter);
@@ -368,6 +371,10 @@ export class ShrutiPlayer {
         this.isInitialized = true;
     }
 
+    private getOutputVolume(volume: number): number {
+        return Math.max(0, volume * OUTPUT_GAIN_BOOST);
+    }
+
     setBaseFrequency(freq: number): void {
         this.baseFrequency = freq;
     }
@@ -375,17 +382,15 @@ export class ShrutiPlayer {
     setVolume(vol: number): void {
         this.volume = Math.max(0, Math.min(1, vol));
         if (this.gain) {
-            this.gain.gain.rampTo(this.volume, 0.1);
+            this.gain.gain.rampTo(this.getOutputVolume(this.volume), 0.1);
         }
     }
 
     setResonance(res: number): void {
         this.resonance = Math.max(0, Math.min(1, res));
         if (this.pluckSynth) {
-            const resonanceValue = 0.99 + (this.resonance * 0.008);
-            const releaseValue = 8 + (this.resonance * 8);
-            this.pluckSynth.resonance = resonanceValue;
-            this.pluckSynth.release = releaseValue;
+            this.pluckSynth.resonance = 0.99 + (this.resonance * 0.008);
+            this.pluckSynth.release = 8 + (this.resonance * 8);
         }
     }
 

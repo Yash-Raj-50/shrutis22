@@ -35,10 +35,11 @@ export function StageCard({ stage, onClick }: StageCardProps) {
                 ${isLocked
                     ? 'bg-[var(--bg-tertiary)] border-[var(--border-light)] opacity-60 cursor-not-allowed'
                     : stage.isCompleted
-                        ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-green-300 hover:border-green-400 hover:shadow-md'
+                        ? 'border-[var(--quiz-completed-card-border)] hover:shadow-md'
                         : 'bg-[var(--bg-card)] border-[var(--border-color)] hover:border-[var(--accent-saffron)] hover:shadow-lg'
                 }
             `}
+            style={stage.isCompleted && !isLocked ? { background: 'var(--quiz-completed-card-bg)' } : undefined}
         >
             <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
@@ -47,16 +48,20 @@ export function StageCard({ stage, onClick }: StageCardProps) {
                         <span className={`
                             text-xs font-semibold px-2 py-0.5 rounded-full
                             ${stage.isCompleted
-                                ? 'bg-green-100 text-green-700'
+                                ? ''
                                 : isLocked
                                     ? 'bg-gray-200 text-gray-500'
                                     : 'bg-[var(--accent-cream)] text-[var(--accent-rust)]'
                             }
-                        `}>
+                        `}
+                        style={stage.isCompleted ? {
+                            background: 'var(--quiz-completed-pill-bg)',
+                            color: 'var(--quiz-completed-pill-text)'
+                        } : undefined}>
                             Stage {stage.order}
                         </span>
                         {stage.isCompleted && (
-                            <span className="text-green-600">✓</span>
+                            <span style={{ color: 'var(--quiz-completed-icon-text)' }}>✓</span>
                         )}
                     </div>
 
@@ -97,10 +102,11 @@ export function StageCard({ stage, onClick }: StageCardProps) {
                     ${isLocked
                         ? 'bg-gray-200'
                         : stage.isCompleted
-                            ? 'bg-green-100'
+                            ? ''
                             : 'bg-[var(--accent-cream)]'
                     }
-                `}>
+                `}
+                style={stage.isCompleted && !isLocked ? { background: 'var(--quiz-completed-icon-bg)' } : undefined}>
                     {isLocked ? (
                         <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -108,7 +114,7 @@ export function StageCard({ stage, onClick }: StageCardProps) {
                             />
                         </svg>
                     ) : stage.isCompleted ? (
-                        <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-6 h-6" style={{ color: 'var(--quiz-completed-icon-text)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                         </svg>
                     ) : (
@@ -125,7 +131,10 @@ export function StageCard({ stage, onClick }: StageCardProps) {
                 <div className="mt-3 pt-3 border-t border-[var(--border-light)]">
                     <div className="flex items-center justify-between text-xs">
                         <span className="text-[var(--text-muted)]">Best Score</span>
-                        <span className={`font-bold ${stage.bestScore >= 80 ? 'text-green-600' : 'text-[var(--accent-rust)]'}`}>
+                        <span
+                            className="font-bold"
+                            style={{ color: stage.bestScore >= 80 ? 'var(--quiz-completed-icon-text)' : 'var(--accent-rust)' }}
+                        >
                             {Math.round(stage.bestScore)}%
                         </span>
                     </div>

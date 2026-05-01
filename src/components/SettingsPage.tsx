@@ -4,7 +4,8 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { SectionHeader } from './SectionHeader';
 
 const PROGRESS_STORAGE_KEY = '22shrutis-quiz-progress';
 const THEME_STORAGE_KEY = '22shrutis-theme';
@@ -38,17 +39,13 @@ export function SettingsPage({
 }: SettingsPageProps) {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
-  const [theme, setTheme] = useState<Theme>('system');
-
-  // Initialize theme from localStorage
-  useEffect(() => {
+  const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null;
-      if (savedTheme) {
-        setTheme(savedTheme);
-      }
+      return (localStorage.getItem(THEME_STORAGE_KEY) as Theme | null) || 'system';
     }
-  }, []);
+
+    return 'system';
+  });
 
   // Apply theme changes
   const handleThemeChange = (newTheme: Theme) => {
@@ -118,7 +115,7 @@ export function SettingsPage({
               JSON.parse(content); // Validate JSON
               localStorage.setItem(PROGRESS_STORAGE_KEY, content);
               window.location.reload(); // Reload to apply changes
-            } catch (error) {
+            } catch {
               alert('Invalid progress file');
             }
           };
@@ -130,20 +127,15 @@ export function SettingsPage({
   };
 
   return (
-    <div className="h-full overflow-y-auto">
+    <div className="h-full flex flex-col">
+      <SectionHeader
+        title="Settings"
+        hindiTitle="सेटिंग्स"
+        description="Customize your learning experience."
+      />
+
+      <div className="flex-1 overflow-y-auto">
       <div className="max-w-3xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[var(--text-primary)] mb-2">
-            Settings
-          </h1>
-          <p className="text-lg text-[var(--accent-rust)]">
-            सेटिंग्स
-          </p>
-          <p className="text-[var(--text-secondary)] mt-2">
-            Customize your learning experience
-          </p>
-        </div>
 
         {/* Success Message */}
         {resetSuccess && (
@@ -343,15 +335,19 @@ export function SettingsPage({
             {/* Reset Progress */}
             <button
               onClick={() => setShowResetConfirm(true)}
-              className="w-full flex items-center justify-between px-4 py-3 rounded-lg border border-red-200 bg-red-50 hover:bg-red-100 transition-colors text-left"
+              className="w-full flex items-center justify-between px-4 py-3 rounded-lg border transition-colors text-left"
+              style={{
+                borderColor: 'var(--danger-border)',
+                background: 'var(--danger-bg)',
+              }}
             >
               <div>
-                <div className="font-medium text-red-700">Reset All Progress</div>
-                <div className="text-xs text-red-600 mt-0.5">
+                <div className="font-medium" style={{ color: 'var(--danger-text)' }}>Reset All Progress</div>
+                <div className="text-xs mt-0.5" style={{ color: 'var(--danger-muted)' }}>
                   Clear all quiz progress and start fresh
                 </div>
               </div>
-              <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" style={{ color: 'var(--danger-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </button>
@@ -370,7 +366,7 @@ export function SettingsPage({
           <div className="space-y-3 text-sm text-[var(--text-secondary)]">
             <div className="flex justify-between py-2 border-b border-[var(--border-light)]">
               <span className="font-medium">Version</span>
-              <span>0.5.0</span>
+              <span>0.6.0</span>
             </div>
             <div className="flex justify-between py-2 border-b border-[var(--border-light)]">
               <span className="font-medium">Music System</span>
@@ -396,8 +392,11 @@ export function SettingsPage({
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-[var(--bg-card)] rounded-2xl p-6 max-w-md w-full border border-[var(--border-color)] shadow-xl">
               <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div
+                  className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+                  style={{ background: 'var(--danger-soft-bg)' }}
+                >
+                  <svg className="w-8 h-8" style={{ color: 'var(--danger-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                   </svg>
                 </div>
@@ -419,7 +418,8 @@ export function SettingsPage({
                 </button>
                 <button
                   onClick={handleResetProgress}
-                  className="flex-1 px-4 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-medium"
+                  className="flex-1 px-4 py-3 rounded-lg text-white transition-colors font-medium"
+                  style={{ background: 'var(--danger-solid)' }}
                 >
                   Reset Progress
                 </button>
@@ -427,6 +427,7 @@ export function SettingsPage({
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

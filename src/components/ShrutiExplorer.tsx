@@ -6,8 +6,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Shruti, SwaraName } from '@/types';
-import { SHRUTIS, getShrutisBySwara } from '@/constants/shrutis';
+import { SHRUTIS } from '@/constants/shrutis';
 import { ShrutiPlayer } from '@/audio/TanpuraEngine';
+import { SectionHeader } from './SectionHeader';
 
 interface ShrutiExplorerProps {
     baseFrequency: number;
@@ -16,8 +17,103 @@ interface ShrutiExplorerProps {
     onVolumeChange: (volume: number) => void;
 }
 
-const SWARAS: SwaraName[] = ['Sa', 'Re', 'Ga', 'Ma', 'Pa', 'Dha', 'Ni'];
 const UPPER_SA_ID = 23;
+const RECENT_NOTES_LIMIT = 7;
+const NOTE_HISTORY_COLUMNS = 13;
+const NOTE_HISTORY_CENTER_COLUMN = Math.floor(NOTE_HISTORY_COLUMNS / 2);
+type HistoryCell = { shruti: Shruti; historyIndex: number } | null;
+type KeyBinding = { shrutiId: number; octaveOffset: number };
+const SHRUTI_KEYBOARD_SHORTCUTS: Record<number, string[]> = {
+    1: ['3', 'E', 'D', 'C'],
+    2: ['4'],
+    3: ['R'],
+    4: ['F'],
+    5: ['V'],
+    6: ['5'],
+    7: ['T'],
+    8: ['G'],
+    9: ['B'],
+    10: ['6'],
+    11: ['Y'],
+    12: ['H'],
+    13: ['N'],
+    14: ['7', 'U', 'J', 'M'],
+    15: ['8'],
+    16: ['I'],
+    17: ['K'],
+    18: [','],
+    19: ['9'],
+    20: ['O'],
+    21: ['L'],
+    22: ['.'],
+    23: ['0', 'P', ';', '/'],
+};
+const KEYBOARD_COLUMN_LABELS = ['3', '4', '5', '6', '7', '8', '9', '0'];
+const KEYBOARD_ROW_LABELS = ['3', 'E', 'D', 'C'];
+const KEYBOARD_PLAY_BINDINGS: Record<string, KeyBinding> = {
+    '1': { shrutiId: 15, octaveOffset: -1 },
+    '2': { shrutiId: 19, octaveOffset: -1 },
+    '3': { shrutiId: 1, octaveOffset: 0 },
+    '4': { shrutiId: 2, octaveOffset: 0 },
+    '5': { shrutiId: 6, octaveOffset: 0 },
+    '6': { shrutiId: 10, octaveOffset: 0 },
+    '7': { shrutiId: 14, octaveOffset: 0 },
+    '8': { shrutiId: 15, octaveOffset: 0 },
+    '9': { shrutiId: 19, octaveOffset: 0 },
+    '0': { shrutiId: UPPER_SA_ID, octaveOffset: 0 },
+    '-': { shrutiId: 2, octaveOffset: 1 },
+    '=': { shrutiId: 6, octaveOffset: 1 },
+    q: { shrutiId: 16, octaveOffset: -1 },
+    w: { shrutiId: 20, octaveOffset: -1 },
+    e: { shrutiId: 1, octaveOffset: 0 },
+    r: { shrutiId: 3, octaveOffset: 0 },
+    t: { shrutiId: 7, octaveOffset: 0 },
+    y: { shrutiId: 11, octaveOffset: 0 },
+    u: { shrutiId: 14, octaveOffset: 0 },
+    i: { shrutiId: 16, octaveOffset: 0 },
+    o: { shrutiId: 20, octaveOffset: 0 },
+    p: { shrutiId: UPPER_SA_ID, octaveOffset: 0 },
+    '[': { shrutiId: 3, octaveOffset: 1 },
+    ']': { shrutiId: 7, octaveOffset: 1 },
+    a: { shrutiId: 17, octaveOffset: -1 },
+    s: { shrutiId: 21, octaveOffset: -1 },
+    d: { shrutiId: 1, octaveOffset: 0 },
+    f: { shrutiId: 4, octaveOffset: 0 },
+    g: { shrutiId: 8, octaveOffset: 0 },
+    h: { shrutiId: 12, octaveOffset: 0 },
+    j: { shrutiId: 14, octaveOffset: 0 },
+    k: { shrutiId: 17, octaveOffset: 0 },
+    l: { shrutiId: 21, octaveOffset: 0 },
+    ';': { shrutiId: UPPER_SA_ID, octaveOffset: 0 },
+    "'": { shrutiId: 4, octaveOffset: 1 },
+    '\\': { shrutiId: 8, octaveOffset: 1 },
+    z: { shrutiId: 18, octaveOffset: -1 },
+    x: { shrutiId: 22, octaveOffset: -1 },
+    c: { shrutiId: 1, octaveOffset: 0 },
+    v: { shrutiId: 5, octaveOffset: 0 },
+    b: { shrutiId: 9, octaveOffset: 0 },
+    n: { shrutiId: 13, octaveOffset: 0 },
+    m: { shrutiId: 14, octaveOffset: 0 },
+    ',': { shrutiId: 18, octaveOffset: 0 },
+    '.': { shrutiId: 22, octaveOffset: 0 },
+    '/': { shrutiId: UPPER_SA_ID, octaveOffset: 0 },
+};
+const UPPER_SA: Shruti = {
+    ...SHRUTIS[0],
+    id: UPPER_SA_ID,
+    name: 'Upper Shadja',
+    shortName: "S'",
+};
+const SHRUTI_COLUMNS: Array<{ key: string; shrutis: Shruti[] }> = [
+    { key: 'sa', shrutis: [SHRUTIS[0]] },
+    { key: 're', shrutis: SHRUTIS.filter((shruti) => shruti.parentSwara === 'Re') },
+    { key: 'ga', shrutis: SHRUTIS.filter((shruti) => shruti.parentSwara === 'Ga') },
+    { key: 'ma', shrutis: SHRUTIS.filter((shruti) => shruti.parentSwara === 'Ma') },
+    { key: 'pa', shrutis: SHRUTIS.filter((shruti) => shruti.parentSwara === 'Pa') },
+    { key: 'dha', shrutis: SHRUTIS.filter((shruti) => shruti.parentSwara === 'Dha') },
+    { key: 'ni', shrutis: SHRUTIS.filter((shruti) => shruti.parentSwara === 'Ni') },
+    { key: 'upper-sa', shrutis: [UPPER_SA] },
+];
 
 // Warmer colors for Indian aesthetic
 const SWARA_WARM_COLORS: Record<SwaraName, { bg: string; text: string; border: string }> = {
@@ -35,10 +131,20 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
     const [isInitialized, setIsInitialized] = useState(false);
     const [activeShruti, setActiveShruti] = useState<number | null>(null);
     const [selectedOctave, setSelectedOctave] = useState(0);
-    const [hoveredShruti, setHoveredShruti] = useState<Shruti | null>(null);
     const [displayedShruti, setDisplayedShruti] = useState<Shruti | null>(null);
+    const [recentShrutis, setRecentShrutis] = useState<Shruti[]>([]);
+    const [queueMotionKey, setQueueMotionKey] = useState(0);
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const recentQueue = recentShrutis.slice(-RECENT_NOTES_LIMIT);
+    const historyQueue = Array.from({ length: NOTE_HISTORY_COLUMNS }, () => null as HistoryCell);
+    const queueStartColumn = NOTE_HISTORY_CENTER_COLUMN - recentQueue.length + 1;
+
+    recentQueue.forEach((shruti, noteIndex) => {
+        historyQueue[queueStartColumn + noteIndex] = {
+            shruti,
+            historyIndex: noteIndex,
+        };
+    });
 
     // Initialize player
     useEffect(() => {
@@ -46,7 +152,6 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
         return () => {
             playerRef.current?.dispose();
             if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current);
-            if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
         };
     }, []);
 
@@ -67,10 +172,6 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
 
     // Handle hover with delay
     const handleMouseEnter = useCallback((shruti: Shruti) => {
-        if (hideTimeoutRef.current) {
-            clearTimeout(hideTimeoutRef.current);
-            hideTimeoutRef.current = null;
-        }
         if (hoverTimeoutRef.current) {
             clearTimeout(hoverTimeoutRef.current);
         }
@@ -84,12 +185,9 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
             clearTimeout(hoverTimeoutRef.current);
             hoverTimeoutRef.current = null;
         }
-        hideTimeoutRef.current = setTimeout(() => {
-            setDisplayedShruti(null);
-        }, 300); // 300ms delay before hiding
     }, []);
 
-    const handleShrutiClick = useCallback(async (shruti: Shruti) => {
+    const handleShrutiClick = useCallback(async (shruti: Shruti, octaveOffset = 0) => {
         if (!playerRef.current) return;
 
         if (!isInitialized) {
@@ -99,44 +197,16 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
 
         setActiveShruti(shruti.id);
         setDisplayedShruti(shruti);
-        const octaveToPlay = shruti.id === UPPER_SA_ID ? selectedOctave + 1 : selectedOctave;
+        setRecentShrutis((prev) => [...prev, shruti].slice(-RECENT_NOTES_LIMIT));
+        setQueueMotionKey((prev) => prev + 1);
+        const octaveToPlay = shruti.id === UPPER_SA_ID
+            ? selectedOctave + octaveOffset + 1
+            : selectedOctave + octaveOffset;
         playerRef.current.playNote(shruti.ratio, octaveToPlay);
-
-        // Reset active state after note plays
-        setTimeout(() => setActiveShruti(null), 1500);
     }, [isInitialized, selectedOctave]);
 
     // Keyboard shortcuts for playing shrutis
-    // Keys: q w e r t y u i o p [ ] for first 12, a s d f g h j k l ; ' for next 11
     useEffect(() => {
-        const keyMap: Record<string, number> = {
-            // Top row - first 12 shrutis (S to M2)
-            'q': 1,  // Sa
-            'w': 2,  // r1
-            'e': 3,  // r2
-            'r': 4,  // R1
-            't': 5,  // R2
-            'y': 6,  // g1
-            'u': 7,  // g2
-            'i': 8,  // G1
-            'o': 9,  // G2
-            'p': 10, // m1
-            '[': 11, // m2
-            ']': 12, // M1
-            // Home row - next 11 shrutis (M2 to N2 + upper Sa)
-            'a': 13, // M2
-            's': 14, // Pa
-            'd': 15, // d1
-            'f': 16, // d2
-            'g': 17, // D1
-            'h': 18, // D2
-            'j': 19, // n1
-            'k': 20, // n2
-            'l': 21, // N1
-            ';': 22, // N2
-            "'": UPPER_SA_ID, // Upper Sa (special case)
-        };
-
         const handleKeyDown = (e: KeyboardEvent) => {
             // Ignore if typing in an input
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
@@ -144,28 +214,26 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
             }
 
             const key = e.key.toLowerCase();
-            const shrutiId = keyMap[key];
+            const binding = KEYBOARD_PLAY_BINDINGS[key];
 
-            if (shrutiId) {
+            if (binding) {
                 e.preventDefault();
-                // Handle upper Sa specially
-                if (shrutiId === UPPER_SA_ID) {
+                if (binding.shrutiId === UPPER_SA_ID) {
                     const upperSa = { ...SHRUTIS[0], id: UPPER_SA_ID, name: 'Upper Shadja', shortName: "S'" };
-                    handleShrutiClick(upperSa);
+                    handleShrutiClick(upperSa, binding.octaveOffset);
                 } else {
-                    const shruti = SHRUTIS.find(s => s.id === shrutiId);
+                    const shruti = SHRUTIS.find(s => s.id === binding.shrutiId);
                     if (shruti) {
-                        handleShrutiClick(shruti);
+                        handleShrutiClick(shruti, binding.octaveOffset);
                     }
                 }
             }
 
-            // Octave switching with number keys
-            if (e.key === '1') {
+            if (e.shiftKey && e.key === '!') {
                 setSelectedOctave(-1); // Lower
-            } else if (e.key === '2') {
+            } else if (e.shiftKey && e.key === '@') {
                 setSelectedOctave(0);  // Middle
-            } else if (e.key === '3') {
+            } else if (e.shiftKey && e.key === '#') {
                 setSelectedOctave(1);  // Upper
             }
         };
@@ -177,14 +245,11 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
     return (
         <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="p-6 border-b border-[var(--border-color)]">
-                <h2 className="text-xl font-semibold text-[var(--text-primary)]">
-                    Explore the 22 Shrutis
-                </h2>
-                <p className="text-sm text-[var(--text-muted)] mt-1">
-                    Click or use keyboard to play shrutis
-                </p>
-            </div>
+            <SectionHeader
+                title="Explore the 22 Shrutis"
+                hindiTitle="श्रुतियों को देखें"
+                description="Play, compare, and recognize each shruti across the octave."
+            />
 
             {/* Octave selector and Volume */}
             <div className="px-6 py-4 border-b border-[var(--border-color)] flex flex-wrap items-center gap-6">
@@ -193,9 +258,9 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                     <span className="text-[var(--text-secondary)] text-sm">Octave:</span>
                     <div className="flex gap-2">
                         {[
-                            { value: -1, label: 'मंद्र', key: '1' },
-                            { value: 0, label: 'मध्य', key: '2' },
-                            { value: 1, label: 'तार', key: '3' },
+                            { value: -1, label: 'Mandra', hindiLabel: 'मंद्र', key: 'Shift+1' },
+                            { value: 0, label: 'Madhya', hindiLabel: 'मध्य', key: 'Shift+2' },
+                            { value: 1, label: 'Taar', hindiLabel: 'तार', key: 'Shift+3' },
                         ].map(oct => (
                             <button
                                 key={oct.value}
@@ -209,7 +274,7 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                                 `}
                                 title={`Press ${oct.key} to select`}
                             >
-                                {oct.label}
+                                {oct.label} ({oct.hindiLabel}) [{oct.key}]
                             </button>
                         ))}
                     </div>
@@ -238,145 +303,147 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                 </div>
             </div>
 
-            {/* Shruti info panel - fixed height */}
-            <div className="px-6 py-4 border-b border-[var(--border-color)] h-[88px] flex items-center">
-                {displayedShruti ? (
-                    <div className="flex items-center gap-4">
-                        <div
-                            className="w-14 h-14 rounded-lg flex items-center justify-center text-2xl font-bold"
-                            style={{
-                                backgroundColor: SWARA_WARM_COLORS[displayedShruti.parentSwara].bg,
-                                color: SWARA_WARM_COLORS[displayedShruti.parentSwara].text,
-                                border: `1px solid ${SWARA_WARM_COLORS[displayedShruti.parentSwara].border}`,
-                            }}
-                        >
-                            {displayedShruti.shortName}
-                        </div>
-                        <div>
-                            <div className="text-[var(--text-primary)] font-medium">
-                                {displayedShruti.name}
-                            </div>
-                            <div className="text-[var(--text-muted)] text-sm mt-1">
-                                Ratio: <span className="font-mono">{displayedShruti.ratio[0]}:{displayedShruti.ratio[1]}</span>
-                                {' • '}
-                                <span className="font-mono">{displayedShruti.cents.toFixed(1)}</span> cents
-                                {' • '}
-                                Western ≈ {displayedShruti.westernApprox}
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="text-[var(--text-muted)] text-sm">
-                        Hover over a shruti to see details, click to play
-                    </div>
-                )}
-            </div>
-
-            {/* Main shruti display - wrapped, centered */}
-            <div className="flex-1 overflow-y-auto p-6">
-                {/* All 22 shrutis + upper Sa, wrapped and centered */}
-                <div className="flex flex-wrap gap-2 justify-center pb-4">
-                    {/* Generate all shrutis in chromatic order with upper Sa at end */}
-                    {[...SHRUTIS, { ...SHRUTIS[0], id: UPPER_SA_ID, name: 'Upper Shadja', shortName: "S'" }].map((shruti, index) => {
-                        const colors = SWARA_WARM_COLORS[shruti.parentSwara];
-                        const isUpperSa = index === SHRUTIS.length;
-
-                        return (
-                            <button
-                                key={shruti.id}
-                                onClick={() => handleShrutiClick(shruti)}
-                                onMouseEnter={() => handleMouseEnter(shruti)}
-                                onMouseLeave={handleMouseLeave}
-                                className={`
-                                    shruti-button px-3 py-4 rounded-xl
-                                    flex flex-col items-center justify-center
-                                    w-[60px] h-[85px]
-                                    ${activeShruti === shruti.id ? 'active' : ''}
-                                    ${shruti.isCommon || isUpperSa ? '' : 'opacity-70'}
-                                    transition-all duration-150
-                                `}
-                                style={{
-                                    borderTopWidth: '4px',
-                                    borderTopColor: colors.text,
-                                }}
-                            >
-                                <span
-                                    className="text-base font-bold"
-                                    style={{ color: colors.text }}
-                                >
-                                    {shruti.shortName}
-                                </span>
-                                <span className="text-[9px] text-[var(--text-muted)] mt-1 font-mono">
-                                    {isUpperSa ? '2:1' : `${shruti.ratio[0]}:${shruti.ratio[1]}`}
-                                </span>
-                                <span
-                                    className="text-[8px] mt-0.5 opacity-70"
-                                    style={{ color: colors.text }}
-                                >
-                                    {shruti.parentSwara}{isUpperSa ? "'" : ''}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* Legend for swaras */}
-                <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
-                    <div className="flex flex-wrap gap-3 justify-center">
-                        {SWARAS.map(swara => {
-                            const colors = SWARA_WARM_COLORS[swara];
-                            const count = getShrutisBySwara(swara).length;
-                            return (
+            {/* Main shruti display */}
+            <div className="flex-1 overflow-y-auto p-6 pl-2">
+                <div className="overflow-x-auto">
+                    <div className="mx-auto min-w-[760px] max-w-[1100px]">
+                        <div className="mb-1.5 grid grid-cols-[1.5rem_repeat(8,minmax(0,1fr))] gap-3">
+                            <div />
+                            {KEYBOARD_COLUMN_LABELS.map((keyLabel) => (
                                 <div
-                                    key={swara}
-                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg"
-                                    style={{
-                                        backgroundColor: colors.bg,
-                                        border: `1px solid ${colors.border}`,
-                                    }}
+                                    key={keyLabel}
+                                    className="text-center text-xs font-mono font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]"
                                 >
-                                    <span className="font-bold text-sm" style={{ color: colors.text }}>
-                                        {swara}
-                                    </span>
-                                    <span className="text-xs opacity-70" style={{ color: colors.text }}>
-                                        ({count})
-                                    </span>
+                                    {keyLabel}
                                 </div>
-                            );
-                        })}
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-[1.5rem_1fr] gap-2">
+                            <div className="grid grid-rows-4 gap-1 pt-1">
+                                {KEYBOARD_ROW_LABELS.map((keyLabel) => (
+                                    <div
+                                        key={keyLabel}
+                                        className="flex items-center justify-center text-xs font-mono font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]"
+                                    >
+                                        {keyLabel}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-8">
+                                {SHRUTI_COLUMNS.map((column) => {
+                                    return (
+                                        <div
+                                            key={column.key}
+                                            className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-2"
+                                        >
+                                            <div className="space-y-2">
+                                                {column.shrutis.map((shruti) => {
+                                                    const shrutiColors = SWARA_WARM_COLORS[shruti.parentSwara];
+                                                    const isUpperSa = shruti.id === UPPER_SA_ID;
+
+                                                    return (
+                                                        <button
+                                                            key={shruti.id}
+                                                            onClick={() => handleShrutiClick(shruti)}
+                                                            onMouseEnter={() => handleMouseEnter(shruti)}
+                                                            onMouseLeave={handleMouseLeave}
+                                                            className={`
+                                                                shruti-button w-full rounded-xl px-2 py-3 text-left transition-all duration-150
+                                                                ${activeShruti === shruti.id ? 'active' : ''}
+                                                                ${shruti.isCommon || isUpperSa ? '' : 'opacity-75'}
+                                                            `}
+                                                            style={{
+                                                                borderTopWidth: '4px',
+                                                                borderTopColor: shrutiColors.text,
+                                                            }}
+                                                        >
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <span
+                                                                    className="text-lg font-bold"
+                                                                    style={{ color: shrutiColors.text }}
+                                                                >
+                                                                    {shruti.shortName}
+                                                                </span>
+                                                            </div>
+                                                            <div className="mt-1 text-xs text-[var(--text-secondary)]">
+                                                                {shruti.name}
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Note history queue - same width as columns */}
+                        <div className="mt-6 rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] px-4 py-3">
+                            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-around">
+                                <div className="min-w-0 text-xs text-[var(--text-muted)] md:text-sm">
+                                    {displayedShruti ? (
+                                        <span className="block truncate">
+                                            <span className="font-semibold text-[var(--text-primary)]">{displayedShruti.name}</span>
+                                            {' • '}
+                                            <span className="font-mono">{displayedShruti.ratio[0]}:{displayedShruti.ratio[1]}</span>
+                                            {' • '}
+                                            {displayedShruti.cents.toFixed(1)} cents
+                                            {' • '}
+                                            {displayedShruti.westernApprox}
+                                            {' • '}
+                                            Keys {SHRUTI_KEYBOARD_SHORTCUTS[displayedShruti.id].join(' / ')}
+                                        </span>
+                                    ) : (
+                                        <span className="block truncate">Click a shruti or use the keyboard to start exploring</span>
+                                    )}
+                                </div>
+
+                                <div className="overflow-hidden lg:flex lg:justify-end">
+                                    <div key={queueMotionKey} className="animate-note-feed-shift flex justify-end">
+                                        <div
+                                            className="grid w-full max-w-3xl gap-x-2"
+                                            style={{ gridTemplateColumns: `repeat(${NOTE_HISTORY_COLUMNS}, minmax(0, 1fr))` }}
+                                        >
+                                            {historyQueue.map((cell, cellIndex) => {
+                                                const isLatest = cell !== null && cellIndex === NOTE_HISTORY_CENTER_COLUMN;
+                                                const noteAge = cell ? recentQueue.length - 1 - cell.historyIndex : null;
+
+                                                return (
+                                                    <div
+                                                        key={cell ? `${cell.shruti.id}-${cell.historyIndex}-${cellIndex}-${queueMotionKey}` : `empty-${cellIndex}-${queueMotionKey}`}
+                                                        className="flex h-6 min-w-[1.25rem] items-center justify-center text-xs font-semibold md:text-sm"
+                                                        style={cell
+                                                            ? isLatest
+                                                                ? {
+                                                                    color: 'var(--accent-saffron)',
+                                                                }
+                                                                : {
+                                                                    color: 'var(--text-secondary)',
+                                                                    opacity: noteAge !== null ? Math.max(0.42, 0.86 - noteAge * 0.1) : 0.6,
+                                                                }
+                                                            : {
+                                                                color: 'var(--border-color)',
+                                                                opacity: 0.55,
+                                                            }}
+                                                    >
+                                                        {cell?.shruti.shortName ?? '.'}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Keyboard shortcuts hint */}
-                <div className="mt-4 pt-4 border-t border-[var(--border-color)]">
-                    <p className="text-xs text-[var(--text-muted)] text-center mb-2">Keyboard Shortcuts</p>
-                    <div className="flex flex-col gap-1 text-xs text-[var(--text-muted)] font-mono">
-                        <div className="flex items-center justify-center gap-2">
-                            <span className="text-[var(--text-secondary)]">S→M1:</span>
-                            <span className="bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded">q w e r t y u i o p [ ]</span>
-                        </div>
-                        <div className="flex items-center justify-center gap-2">
-                            <span className="text-[var(--text-secondary)]">M2→S&apos;:</span>
-                            <span className="bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded">a s d f g h j k l ; &apos;</span>
-                        </div>
-                        <div className="flex items-center justify-center gap-2 mt-1">
-                            <span className="text-[var(--text-secondary)]">Octave:</span>
-                            <span className="bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded">1</span> मंद्र
-                            <span className="bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded">2</span> मध्य
-                            <span className="bg-[var(--bg-tertiary)] px-1.5 py-0.5 rounded">3</span> तार
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* Hint at bottom */}
-            {!isInitialized && (
-                <div className="px-6 py-4 bg-[var(--bg-secondary)] border-t border-[var(--border-color)]">
-                    <p className="text-sm text-[var(--text-muted)] text-center">
-                        🎵 Click any shruti or press a key to initialize audio
-                    </p>
-                </div>
-            )}
         </div>
     );
 }

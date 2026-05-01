@@ -258,9 +258,9 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                     <span className="text-[var(--text-secondary)] text-sm">Octave:</span>
                     <div className="flex gap-2">
                         {[
-                            { value: -1, label: 'Mandra', hindiLabel: 'मंद्र', key: 'Shift+1' },
-                            { value: 0, label: 'Madhya', hindiLabel: 'मध्य', key: 'Shift+2' },
-                            { value: 1, label: 'Taar', hindiLabel: 'तार', key: 'Shift+3' },
+                            { value: -1, label: 'Mandra', hindiLabel: 'मंद्र', key: '⇧1' },
+                            { value: 0, label: 'Madhya', hindiLabel: 'मध्य', key: '⇧2' },
+                            { value: 1, label: 'Taar', hindiLabel: 'तार', key: '⇧3' },
                         ].map(oct => (
                             <button
                                 key={oct.value}
@@ -274,7 +274,7 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                                 `}
                                 title={`Press ${oct.key} to select`}
                             >
-                                {oct.label} ({oct.hindiLabel}) [{oct.key}]
+                                {oct.label} ({oct.hindiLabel}) <span className="inline-block px-2 py-1 rounded-md bg-[var(--bg-secondary)] text-[var(--text-muted)] text-xs font-mono border border-[var(--border-color)] opacity-60">{oct.key}</span>
                             </button>
                         ))}
                     </div>

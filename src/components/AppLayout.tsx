@@ -53,6 +53,7 @@ export function AppLayout() {
                         volume={audioSettings.masterVolume}
                         resonance={audioSettings.resonance}
                         onVolumeChange={(vol) => updateAudioSettings({ masterVolume: vol })}
+                        onResonanceChange={(res) => updateAudioSettings({ resonance: res })}
                     />
                 );
             case 'learn':
@@ -67,8 +68,10 @@ export function AppLayout() {
                     <SettingsPage
                         baseFrequency={audioSettings.baseFrequency}
                         masterVolume={audioSettings.masterVolume}
+                        resonance={audioSettings.resonance}
                         onBaseFrequencyChange={(freq) => updateAudioSettings({ baseFrequency: freq })}
                         onVolumeChange={(vol) => updateAudioSettings({ masterVolume: vol })}
+                        onResonanceChange={(res) => updateAudioSettings({ resonance: res })}
                     />
                 );
             default:

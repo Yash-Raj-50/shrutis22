@@ -61,7 +61,7 @@ export class TanpuraEngine {
         // Create PluckSynth for each string (Karplus-Strong)
         // Higher base resonance for longer sustain even at 0%
         const resonanceValue = 0.99 + (this.config.resonance * 0.008); // 0.99 to 0.998
-        const releaseValue = 8 + (this.config.resonance * 8); // 8 to 16 seconds
+        const releaseValue = 0.05 + (this.config.resonance * 8); // 0.1 to 8.1 seconds
 
         for (let i = 0; i < 4; i++) {
             const stringVolume = this.config.strings[i].volume;
@@ -256,7 +256,7 @@ export class TanpuraEngine {
 
     private updateResonance(resonance: number): void {
         const resonanceValue = 0.99 + (resonance * 0.008); // 0.99 to 0.998
-        const releaseValue = 8 + (resonance * 8); // 8 to 16 seconds
+        const releaseValue = 0.05 + (resonance * 8); // 0.1 to 8.1 seconds
 
         this.pluckSynths.forEach(synth => {
             synth.resonance = resonanceValue;
@@ -359,7 +359,7 @@ export class ShrutiPlayer {
             attackNoise: 0.2,
             dampening: 350,
             resonance: 0.99 + (this.resonance * 0.008),
-            release: 8 + (this.resonance * 8),
+            release: 0.05 + (this.resonance * 8),
         });
 
         this.pluckSynth.connect(this.filter);
@@ -390,15 +390,30 @@ export class ShrutiPlayer {
         this.resonance = Math.max(0, Math.min(1, res));
         if (this.pluckSynth) {
             this.pluckSynth.resonance = 0.99 + (this.resonance * 0.008);
-            this.pluckSynth.release = 8 + (this.resonance * 8);
+            this.pluckSynth.release = 0.1 + (this.resonance * 8);
         }
     }
 
     playNote(ratio: [number, number], octave: number = 0): void {
         if (!this.pluckSynth || this.volume === 0) return;
 
+        // Restore gain to normal volume in case it was muted
+        if (this.gain) {
+            this.gain.gain.value = this.getOutputVolume(this.volume);
+        }
+
         const freq = calculateFrequency(this.baseFrequency, ratio, octave);
         this.pluckSynth.triggerAttack(freq);
+    }
+
+    stopNote(): void {
+        if (!this.gain) return;
+        // Immediately cut the gain to stop the note
+        this.gain.gain.value = 0;
+        // Reset the synth for the next note
+        if (this.pluckSynth) {
+            this.pluckSynth.triggerRelease();
+        }
     }
 
     dispose(): void {

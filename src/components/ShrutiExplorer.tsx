@@ -15,6 +15,7 @@ interface ShrutiExplorerProps {
     volume: number;
     resonance: number;
     onVolumeChange: (volume: number) => void;
+    onResonanceChange?: (resonance: number) => void;
 }
 
 const UPPER_SA_ID = 23;
@@ -126,7 +127,7 @@ const SWARA_WARM_COLORS: Record<SwaraName, { bg: string; text: string; border: s
     Ni: { bg: 'rgba(130, 80, 110, 0.15)', text: '#c490aa', border: 'rgba(130, 80, 110, 0.4)' },
 };
 
-export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChange }: ShrutiExplorerProps) {
+export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChange, onResonanceChange }: ShrutiExplorerProps) {
     const playerRef = useRef<ShrutiPlayer | null>(null);
     const [isInitialized, setIsInitialized] = useState(false);
     const [activeShruti, setActiveShruti] = useState<number | null>(null);
@@ -134,6 +135,7 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
     const [displayedShruti, setDisplayedShruti] = useState<Shruti | null>(null);
     const [recentShrutis, setRecentShrutis] = useState<Shruti[]>([]);
     const [queueMotionKey, setQueueMotionKey] = useState(0);
+    const [isNotePlaying, setIsNotePlaying] = useState(false);
     const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const recentQueue = recentShrutis.slice(-RECENT_NOTES_LIMIT);
     const historyQueue = Array.from({ length: NOTE_HISTORY_COLUMNS }, () => null as HistoryCell);
@@ -199,17 +201,31 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
         setDisplayedShruti(shruti);
         setRecentShrutis((prev) => [...prev, shruti].slice(-RECENT_NOTES_LIMIT));
         setQueueMotionKey((prev) => prev + 1);
+        setIsNotePlaying(true);
         const octaveToPlay = shruti.id === UPPER_SA_ID
             ? selectedOctave + octaveOffset + 1
             : selectedOctave + octaveOffset;
         playerRef.current.playNote(shruti.ratio, octaveToPlay);
     }, [isInitialized, selectedOctave]);
 
+    const handleStopNote = useCallback(() => {
+        if (!playerRef.current) return;
+        playerRef.current.stopNote();
+        setIsNotePlaying(false);
+    }, []);
+
     // Keyboard shortcuts for playing shrutis
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             // Ignore if typing in an input
             if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+                return;
+            }
+
+            // Handle spacebar to stop current note
+            if (e.code === 'Space') {
+                e.preventDefault();
+                handleStopNote();
                 return;
             }
 
@@ -240,7 +256,7 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [handleShrutiClick]);
+    }, [handleShrutiClick, handleStopNote]);
 
     return (
         <div className="h-full flex flex-col">
@@ -299,6 +315,28 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                     />
                     <span className="text-[var(--accent-saffron)] font-mono text-sm w-10">
                         {Math.round(volume * 100)}%
+                    </span>
+                </div>
+
+                {/* Sustain slider */}
+                <div className="flex items-center gap-3">
+                    <span className="text-[var(--text-secondary)] text-sm">Sustain:</span>
+                    <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={resonance * 100}
+                        onChange={e => onResonanceChange?.(Number(e.target.value) / 100)}
+                        className="w-24 h-2 bg-[var(--bg-tertiary)] rounded-lg appearance-none cursor-pointer
+                            [&::-webkit-slider-thumb]:appearance-none
+                            [&::-webkit-slider-thumb]:w-4
+                            [&::-webkit-slider-thumb]:h-4
+                            [&::-webkit-slider-thumb]:rounded-full
+                            [&::-webkit-slider-thumb]:bg-[var(--accent-saffron)]
+                            [&::-webkit-slider-thumb]:cursor-pointer"
+                    />
+                    <span className="text-[var(--accent-saffron)] font-mono text-sm w-10">
+                        {Math.round(resonance * 100)}%
                     </span>
                 </div>
             </div>
@@ -449,6 +487,9 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
             </div>
 
             {/* Hint at bottom */}
+            <div className="px-6 py-2 text-center text-xs text-[var(--text-muted)]">
+                Press <span className="font-mono font-semibold">SPACE</span> to stop the current note
+            </div>
         </div>
     );
 }

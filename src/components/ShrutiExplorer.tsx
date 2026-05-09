@@ -350,7 +350,7 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                                                             onMouseEnter={() => handleMouseEnter(shruti)}
                                                             onMouseLeave={handleMouseLeave}
                                                             className={`
-                                                                shruti-button w-full rounded-xl px-2 py-3 text-left transition-all duration-150
+                                                                shruti-button w-full h-28 rounded-xl px-2 py-2 text-left transition-all duration-150 flex flex-col
                                                                 ${activeShruti === shruti.id ? 'active' : ''}
                                                                 ${shruti.isCommon || isUpperSa ? '' : 'opacity-75'}
                                                             `}
@@ -370,6 +370,11 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                                                             <div className="mt-1 text-xs text-[var(--text-secondary)]">
                                                                 {shruti.name}
                                                             </div>
+                                                            {SHRUTI_KEYBOARD_SHORTCUTS[shruti.id] && (
+                                                                <div className="mt-auto text-[0.65rem] text-[var(--text-muted)] font-mono leading-tight">
+                                                                    {SHRUTI_KEYBOARD_SHORTCUTS[shruti.id].join(' / ')}
+                                                                </div>
+                                                            )}
                                                         </button>
                                                     );
                                                 })}
@@ -405,7 +410,7 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                                     <div key={queueMotionKey} className="animate-note-feed-shift flex justify-end">
                                         <div
                                             className="grid w-full max-w-3xl gap-x-2"
-                                            style={{ gridTemplateColumns: `repeat(${NOTE_HISTORY_COLUMNS}, minmax(0, 1fr))` }}
+                                            style={{ gridTemplateColumns: `repeat(${NOTE_HISTORY_COLUMNS}, 1.75rem)` }}
                                         >
                                             {historyQueue.map((cell, cellIndex) => {
                                                 const isLatest = cell !== null && cellIndex === NOTE_HISTORY_CENTER_COLUMN;
@@ -414,7 +419,7 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                                                 return (
                                                     <div
                                                         key={cell ? `${cell.shruti.id}-${cell.historyIndex}-${cellIndex}-${queueMotionKey}` : `empty-${cellIndex}-${queueMotionKey}`}
-                                                        className="flex h-6 min-w-[1.25rem] items-center justify-center text-xs font-semibold md:text-sm"
+                                                        className="flex h-6 w-7 items-center justify-center text-xs font-semibold md:text-sm"
                                                         style={cell
                                                             ? isLatest
                                                                 ? {

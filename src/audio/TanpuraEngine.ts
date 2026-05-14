@@ -6,7 +6,7 @@ import * as Tone from 'tone';
 import { TanpuraConfig, TanpuraString, calculateFrequency } from '@/types';
 import { getShrutiById } from '@/constants/shrutis';
 
-const OUTPUT_GAIN_BOOST = 3.25;
+const OUTPUT_GAIN_BOOST = 6.5;
 
 /**
  * TanpuraEngine - Authentic tanpura drone using Karplus-Strong synthesis

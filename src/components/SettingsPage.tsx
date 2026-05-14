@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { SectionHeader } from './SectionHeader';
+import { SteppedSlider } from './SteppedSlider';
 
 const PROGRESS_STORAGE_KEY = '22shrutis-quiz-progress';
 const THEME_STORAGE_KEY = '22shrutis-theme';
@@ -279,13 +280,13 @@ export function SettingsPage({
               <label className="block text-sm font-medium text-[var(--text-primary)] mb-3">
                 Master Volume: {Math.round(masterVolume * 100)}%
               </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
+              <SteppedSlider
+                min={0}
+                max={100}
+                step={5}
                 value={masterVolume * 100}
-                onChange={(e) => onVolumeChange(Number(e.target.value) / 100)}
-                className="w-full h-2 bg-[var(--bg-tertiary)] rounded-lg appearance-none cursor-pointer accent-[var(--accent-saffron)]"
+                onChange={(value) => onVolumeChange(value / 100)}
+                ariaLabel="Master volume"
               />
               <div className="flex justify-between text-xs text-[var(--text-muted)] mt-1">
                 <span>Silent</span>
@@ -298,13 +299,13 @@ export function SettingsPage({
               <label className="block text-sm font-medium text-[var(--text-primary)] mb-3">
                 Master Sustain: {Math.round(resonance * 100)}%
               </label>
-              <input
-                type="range"
-                min="0"
-                max="100"
+              <SteppedSlider
+                min={0}
+                max={100}
+                step={5}
                 value={resonance * 100}
-                onChange={(e) => onResonanceChange(Number(e.target.value) / 100)}
-                className="w-full h-2 bg-[var(--bg-tertiary)] rounded-lg appearance-none cursor-pointer accent-[var(--accent-saffron)]"
+                onChange={(value) => onResonanceChange(value / 100)}
+                ariaLabel="Master sustain"
               />
               <div className="flex justify-between text-xs text-[var(--text-muted)] mt-1">
                 <span>Dry</span>

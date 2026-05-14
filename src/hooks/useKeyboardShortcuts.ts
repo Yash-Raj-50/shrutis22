@@ -5,7 +5,6 @@
 'use client';
 
 import { useEffect, useCallback } from 'react';
-import { KEYBOARD_SHORTCUTS } from '@/constants/shrutis';
 
 interface KeyboardActions {
     togglePlay: () => void;
@@ -16,55 +15,84 @@ interface KeyboardActions {
     mute: () => void;
 }
 
-export function useKeyboardShortcuts(actions: KeyboardActions) {
+interface UseKeyboardShortcutsOptions {
+    enabled?: boolean;
+    enableTogglePlay?: boolean;
+}
+
+export function useKeyboardShortcuts(
+    actions: KeyboardActions,
+    { enabled = true, enableTogglePlay = true }: UseKeyboardShortcutsOptions = {}
+) {
     const handleKeyDown = useCallback(
         (event: KeyboardEvent) => {
+            if (!enabled) {
+                return;
+            }
+
             // Don't trigger shortcuts when typing in input fields
             if (
                 event.target instanceof HTMLInputElement ||
-                event.target instanceof HTMLTextAreaElement
+                event.target instanceof HTMLTextAreaElement ||
+                event.target instanceof HTMLSelectElement
             ) {
                 return;
             }
 
-            const shortcut = KEYBOARD_SHORTCUTS.find(s => s.key === event.key);
+            if (enableTogglePlay && event.key === 'Enter') {
+                event.preventDefault();
+                actions.togglePlay();
+                return;
+            }
 
-            if (!shortcut) return;
+            if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                actions.volumeUp();
+                return;
+            }
 
-            // Prevent default for handled keys
-            event.preventDefault();
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                actions.volumeDown();
+                return;
+            }
 
-            switch (shortcut.action) {
-                case 'togglePlay':
-                    actions.togglePlay();
-                    break;
-                case 'volumeUp':
-                    actions.volumeUp();
-                    break;
-                case 'volumeDown':
-                    actions.volumeDown();
-                    break;
-                case 'selectString1':
-                    actions.selectString(0);
-                    break;
-                case 'selectString2':
-                    actions.selectString(1);
-                    break;
-                case 'selectString3':
-                    actions.selectString(2);
-                    break;
-                case 'selectString4':
-                    actions.selectString(3);
-                    break;
-                case 'closeModal':
-                    actions.closeModal();
-                    break;
-                case 'mute':
-                    actions.mute();
-                    break;
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                actions.closeModal();
+                return;
+            }
+
+            if (event.key.toLowerCase() === 'm') {
+                event.preventDefault();
+                actions.mute();
+                return;
+            }
+
+            if (event.key === '1') {
+                event.preventDefault();
+                actions.selectString(0);
+                return;
+            }
+
+            if (event.key === '2') {
+                event.preventDefault();
+                actions.selectString(1);
+                return;
+            }
+
+            if (event.key === '3') {
+                event.preventDefault();
+                actions.selectString(2);
+                return;
+            }
+
+            if (event.key === '4') {
+                event.preventDefault();
+                actions.selectString(3);
             }
         },
-        [actions]
+        [actions, enabled, enableTogglePlay]
     );
 
     useEffect(() => {

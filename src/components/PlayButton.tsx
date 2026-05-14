@@ -45,7 +45,7 @@ export function PlayButton({
                     ? '0 0 30px rgba(139, 41, 66, 0.5)'
                     : '0 0 30px rgba(232, 168, 56, 0.4)',
             }}
-            title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
+            title={isPlaying ? 'Pause (Option/Alt + T)' : 'Play (Option/Alt + T)'}
         >
             {/* Pulse animation when playing */}
             {isPlaying && (

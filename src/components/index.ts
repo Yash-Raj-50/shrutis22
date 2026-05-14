@@ -6,6 +6,8 @@ export { TanpuraStringComponent } from './TanpuraString';
 export { ShrutiSelector } from './ShrutiSelector';
 export { Controls } from './Controls';
 export { PlayButton } from './PlayButton';
+export { ShortcutHelpModal } from './ShortcutHelpModal';
+export { SteppedSlider } from './SteppedSlider';
 export { TanpuraSection, TanpuraPage } from './TanpuraPage';
 export { Sidebar } from './Sidebar';
 export { ShrutiExplorer } from './ShrutiExplorer';

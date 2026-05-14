@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { TanpuraEngine, createDefaultTanpuraConfig } from '@/audio/TanpuraEngine';
 import { TanpuraConfig, TanpuraString, TanpuraPreset } from '@/types';
 
-interface UseTanpuraReturn {
+export interface UseTanpuraReturn {
     // State
     config: TanpuraConfig;
     isInitialized: boolean;

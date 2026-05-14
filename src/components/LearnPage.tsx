@@ -27,7 +27,10 @@ interface LearnPageProps {
     volume: number;
 }
 
-export function LearnPage({ baseFrequency, volume }: LearnPageProps) {
+export function LearnPage({
+    baseFrequency,
+    volume,
+}: LearnPageProps) {
     const [view, setView] = useState<LearnView>('stages');
     const [progress, setProgress] = useState<UserProgress>(() => {
         // Try to load from localStorage

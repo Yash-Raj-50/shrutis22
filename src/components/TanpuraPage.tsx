@@ -5,7 +5,7 @@
 'use client';
 
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { useTanpura } from '@/hooks/useTanpura';
+import { UseTanpuraReturn } from '@/hooks/useTanpura';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import {
     TanpuraStringComponent,
@@ -23,35 +23,32 @@ interface GlobalAudioSettings {
 }
 
 interface TanpuraSectionProps {
-    globalSettings: GlobalAudioSettings;
     onSettingsChange: (updates: Partial<GlobalAudioSettings>) => void;
+    tanpura: UseTanpuraReturn;
+    isActive?: boolean;
 }
 
-export function TanpuraSection({ globalSettings, onSettingsChange }: TanpuraSectionProps) {
-    const tanpura = useTanpura({
-        baseFrequency: globalSettings.baseFrequency,
-        masterVolume: globalSettings.masterVolume,
-        resonance: globalSettings.resonance,
-    });
+export function TanpuraSection({
+    onSettingsChange,
+    tanpura,
+    isActive = true,
+}: TanpuraSectionProps) {
     const [selectedStringIndex, setSelectedStringIndex] = useState<number | null>(null);
     const [isSelectorOpen, setIsSelectorOpen] = useState(false);
     const [previousVolume, setPreviousVolume] = useState(0.7);
     const [pluckingString, setPluckingString] = useState<number | null>(null);
-    const [isManualMode, setIsManualMode] = useState(true);
 
     // Sync global settings when tanpura config changes
     useEffect(() => {
         onSettingsChange({
             baseFrequency: tanpura.config.baseFrequency,
-            masterVolume: tanpura.config.masterVolume,
             resonance: tanpura.config.resonance,
         });
-    }, [tanpura.config.baseFrequency, tanpura.config.masterVolume, tanpura.config.resonance]);
+    }, [onSettingsChange, tanpura.config.baseFrequency, tanpura.config.resonance]);
 
     // Setup pluck callback for visual feedback
     useEffect(() => {
-        // Only auto-animate in auto mode
-        if (tanpura.isPlaying && !isManualMode) {
+        if (tanpura.isPlaying) {
             const intervalMs = (60000 / tanpura.config.tempo);
             let index = 0;
             const interval = setInterval(() => {
@@ -62,11 +59,10 @@ export function TanpuraSection({ globalSettings, onSettingsChange }: TanpuraSect
             }, intervalMs);
             return () => clearInterval(interval);
         }
-    }, [tanpura.isPlaying, tanpura.config.tempo, isManualMode]);
+    }, [tanpura.isPlaying, tanpura.config.tempo]);
 
     // Handle manual string pluck
     const handleManualPluck = useCallback((index: number) => {
-        if (!isManualMode) return;
         if (!tanpura.isInitialized) {
             tanpura.initialize().then(() => {
                 tanpura.pluckString(index);
@@ -78,7 +74,7 @@ export function TanpuraSection({ globalSettings, onSettingsChange }: TanpuraSect
             setPluckingString(index);
             setTimeout(() => setPluckingString(null), 800);
         }
-    }, [isManualMode, tanpura]);
+    }, [tanpura]);
 
     const handleStringSelect = useCallback((index: number) => {
         setSelectedStringIndex(index);
@@ -92,14 +88,6 @@ export function TanpuraSection({ globalSettings, onSettingsChange }: TanpuraSect
             }
         },
         [selectedStringIndex, tanpura]
-    );
-
-    const handleToggleActive = useCallback(
-        (index: number) => {
-            const string = tanpura.config.strings[index];
-            tanpura.updateString(index, { isActive: !string.isActive });
-        },
-        [tanpura]
     );
 
     const handleCloseModal = useCallback(() => {
@@ -118,17 +106,22 @@ export function TanpuraSection({ globalSettings, onSettingsChange }: TanpuraSect
 
     const keyboardActions = useMemo(
         () => ({
-            togglePlay: isManualMode ? () => { } : tanpura.togglePlay,
+            togglePlay: async () => {
+                if (!tanpura.isInitialized) {
+                    await tanpura.initialize();
+                }
+                tanpura.togglePlay();
+            },
             volumeUp: () => tanpura.setMasterVolume(Math.min(1, tanpura.config.masterVolume + 0.05)),
             volumeDown: () => tanpura.setMasterVolume(Math.max(0, tanpura.config.masterVolume - 0.05)),
-            selectString: isManualMode ? handleManualPluck : handleStringSelect,
+            selectString: handleManualPluck,
             closeModal: handleCloseModal,
             mute: handleMute,
         }),
-        [tanpura, isManualMode, handleStringSelect, handleManualPluck, handleCloseModal, handleMute]
+        [tanpura, handleManualPluck, handleCloseModal, handleMute]
     );
 
-    useKeyboardShortcuts(keyboardActions);
+    useKeyboardShortcuts(keyboardActions, { enabled: isActive, enableTogglePlay: false });
 
     // Get current tuning description
     const getTuningDescription = () => {
@@ -156,91 +149,36 @@ export function TanpuraSection({ globalSettings, onSettingsChange }: TanpuraSect
                     <div className="grid lg:grid-cols-[1fr_280px] gap-8">
                         {/* Tanpura visualization */}
                         <div className="space-y-6">
-                            {/* Mode toggle */}
-                            <div className="flex justify-center">
-                                <div className="inline-flex rounded-lg border border-[var(--border-color)] p-1 bg-[var(--bg-secondary)]">
-                                    <button
-                                        onClick={() => {
-                                            setIsManualMode(false);
-                                            if (tanpura.isPlaying) tanpura.stop();
-                                        }}
-                                        className={`
-                                            px-4 py-2 rounded-md text-sm font-medium transition-all
-                                            ${!isManualMode
-                                                ? 'bg-[var(--accent-saffron)] text-white shadow-sm'
-                                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                                            }
-                                        `}
-                                    >
-                                        Auto Play
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setIsManualMode(true);
-                                            if (tanpura.isPlaying) tanpura.stop();
-                                        }}
-                                        className={`
-                                            px-4 py-2 rounded-md text-sm font-medium transition-all
-                                            ${isManualMode
-                                                ? 'bg-[var(--accent-saffron)] text-white shadow-sm'
-                                                : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                                            }
-                                        `}
-                                    >
-                                        Manual Pluck
-                                    </button>
-                                </div>
-                            </div>
+                            <div className="flex flex-col items-center gap-4 py-4">
+                                <PlayButton
+                                    isPlaying={tanpura.isPlaying}
+                                    isInitialized={tanpura.isInitialized}
+                                    onToggle={tanpura.togglePlay}
+                                    onInitialize={tanpura.initialize}
+                                />
 
-                            {/* Play button and status - only show in auto mode */}
-                            {!isManualMode && (
-                                <div className="flex flex-col items-center gap-4 py-4">
-                                    <PlayButton
-                                        isPlaying={tanpura.isPlaying}
-                                        isInitialized={tanpura.isInitialized}
-                                        onToggle={tanpura.togglePlay}
-                                        onInitialize={tanpura.initialize}
-                                    />
-
-                                    {/* Status indicator */}
-                                    <div className="flex items-center gap-3">
-                                        <div className={`
+                                {/* Status indicator */}
+                                <div className="flex items-center gap-3">
+                                    <div className={`
                                         w-3 h-3 rounded-full transition-all duration-300
                                         ${tanpura.isPlaying
                                                 ? 'bg-[var(--accent-saffron)] animate-breathe'
                                                 : 'bg-[var(--text-muted)]'
                                             }
                                     `} />
-                                        <span className="text-sm text-[var(--text-secondary)]">
-                                            {tanpura.isPlaying ? 'Drone Active' : 'Ready to Play'}
-                                        </span>
-                                    </div>
-
-                                    {!tanpura.isInitialized && (
-                                        <p className="text-[var(--text-muted)] text-sm text-center">
-                                            Click to start • Audio requires user interaction
-                                        </p>
-                                    )}
+                                    <span className="text-sm text-[var(--text-secondary)]">
+                                        {tanpura.isPlaying ? 'Drone Active' : 'Ready to Play'}
+                                    </span>
                                 </div>
-                            )}
 
-                            {/* Manual mode instructions */}
-                            {isManualMode && (
-                                <div className="flex flex-col items-center gap-3 py-4">
-                                    <div className="text-center">
-                                        <p className="text-[var(--text-primary)] font-medium">Manual Pluck Mode</p>
-                                        <p className="text-[var(--text-muted)] text-sm mt-1">Click on strings to pluck them</p>
-                                    </div>
-                                    {!tanpura.isInitialized && (
-                                        <button
-                                            onClick={tanpura.initialize}
-                                            className="px-4 py-2 bg-[var(--accent-saffron)] text-white rounded-lg text-sm hover:opacity-90 transition-opacity"
-                                        >
-                                            Initialize Audio
-                                        </button>
-                                    )}
-                                </div>
-                            )}
+                                {!tanpura.isInitialized && (
+                                    <p className="text-[var(--text-muted)] text-sm text-center">
+                                        Click to start audio
+                                    </p>
+                                )}
+
+                                <p className="text-[var(--text-muted)] text-sm text-center">Click strings or use keys 1-4</p>
+                            </div>
 
                             {/* Current tuning display */}
                             <div className="text-center py-2 px-4 bg-[var(--bg-secondary)] rounded-lg">
@@ -258,29 +196,22 @@ export function TanpuraSection({ globalSettings, onSettingsChange }: TanpuraSect
                                         string={string}
                                         index={index}
                                         isSelected={selectedStringIndex === index}
-                                        isPlaying={tanpura.isPlaying || isManualMode}
+                                        isPlaying={tanpura.isPlaying}
                                         isPlucking={pluckingString === index}
-                                        onSelect={isManualMode ? handleManualPluck : handleStringSelect}
-                                        onToggleActive={handleToggleActive}
+                                        onSelect={handleManualPluck}
                                         onEdit={handleStringSelect}
+                                        editButtonOnly
                                     />
                                 ))}
                             </div>
 
                             {/* Instructions */}
                             <div className="text-center text-[var(--text-muted)] text-sm space-y-1">
-                                <p>{isManualMode ? 'Click to pluck • Shift+click to change note' : 'Click on a string to change its shruti'}</p>
-                                {!isManualMode && (
-                                    <p className="text-xs">
-                                        Keyboard: <kbd className="px-1.5 py-0.5 bg-[var(--bg-tertiary)] rounded text-xs mx-1">Space</kbd> Play/Pause
-                                        <kbd className="px-1.5 py-0.5 bg-[var(--bg-tertiary)] rounded text-xs mx-1">1-4</kbd> Select string
-                                    </p>
-                                )}
-                                {isManualMode && (
-                                    <p className="text-xs">
-                                        Keyboard: <kbd className="px-1.5 py-0.5 bg-[var(--bg-tertiary)] rounded text-xs mx-1">1-4</kbd> Pluck string
-                                    </p>
-                                )}
+                                <p>Use the note icon to change shruti</p>
+                                <p className="text-xs">
+                                    Keyboard: <kbd className="px-1.5 py-0.5 bg-[var(--bg-tertiary)] rounded text-xs mx-1">Option/Alt + T</kbd> Play/Pause autoplay
+                                    <kbd className="px-1.5 py-0.5 bg-[var(--bg-tertiary)] rounded text-xs mx-1">1-4</kbd> Pluck string
+                                </p>
                             </div>
                         </div>
 

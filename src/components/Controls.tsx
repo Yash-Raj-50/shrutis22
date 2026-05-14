@@ -7,6 +7,7 @@
 import React from 'react';
 import { BASE_FREQUENCIES, TANPURA_PRESETS } from '@/constants/shrutis';
 import { TanpuraPreset } from '@/types';
+import { SteppedSlider } from './SteppedSlider';
 
 interface ControlsProps {
     masterVolume: number;
@@ -59,22 +60,13 @@ export function Controls({
                         {Math.round(masterVolume * 100)}%
                     </span>
                 </div>
-                <input
-                    type="range"
-                    min="0"
-                    max="100"
+                <SteppedSlider
+                    min={0}
+                    max={100}
+                    step={5}
                     value={masterVolume * 100}
-                    onChange={e => onVolumeChange(Number(e.target.value) / 100)}
-                    className="w-full h-2 bg-[var(--bg-tertiary)] rounded-lg appearance-none cursor-pointer
-                        [&::-webkit-slider-thumb]:appearance-none
-                        [&::-webkit-slider-thumb]:w-4
-                        [&::-webkit-slider-thumb]:h-4
-                        [&::-webkit-slider-thumb]:rounded-full
-                        [&::-webkit-slider-thumb]:bg-[var(--accent-saffron)]
-                        [&::-webkit-slider-thumb]:cursor-pointer
-                        [&::-webkit-slider-thumb]:border-2
-                        [&::-webkit-slider-thumb]:border-[var(--bg-primary)]
-                        [&::-webkit-slider-thumb]:shadow-md"
+                    onChange={value => onVolumeChange(value / 100)}
+                    ariaLabel="Tanpura volume"
                 />
             </div>
 
@@ -107,21 +99,14 @@ export function Controls({
                     <label className="text-[var(--text-secondary)] text-sm">Cycle Speed</label>
                     <span className="text-[var(--text-muted)] font-mono text-sm">{tempo} BPM</span>
                 </div>
-                <input
-                    type="range"
-                    min="30"
-                    max="120"
+                <SteppedSlider
+                    min={30}
+                    max={120}
+                    step={5}
                     value={tempo}
-                    onChange={e => onTempoChange(Number(e.target.value))}
-                    className="w-full h-2 bg-[var(--bg-tertiary)] rounded-lg appearance-none cursor-pointer
-                        [&::-webkit-slider-thumb]:appearance-none
-                        [&::-webkit-slider-thumb]:w-4
-                        [&::-webkit-slider-thumb]:h-4
-                        [&::-webkit-slider-thumb]:rounded-full
-                        [&::-webkit-slider-thumb]:bg-[var(--accent-rust)]
-                        [&::-webkit-slider-thumb]:cursor-pointer
-                        [&::-webkit-slider-thumb]:border-2
-                        [&::-webkit-slider-thumb]:border-[var(--bg-primary)]"
+                    onChange={onTempoChange}
+                    accentColor="var(--accent-rust)"
+                    ariaLabel="Tanpura cycle speed"
                 />
             </div>
 
@@ -133,21 +118,14 @@ export function Controls({
                         {Math.round(resonance * 100)}%
                     </span>
                 </div>
-                <input
-                    type="range"
-                    min="0"
-                    max="100"
+                <SteppedSlider
+                    min={0}
+                    max={100}
+                    step={5}
                     value={resonance * 100}
-                    onChange={e => onResonanceChange(Number(e.target.value) / 100)}
-                    className="w-full h-2 bg-[var(--bg-tertiary)] rounded-lg appearance-none cursor-pointer
-                        [&::-webkit-slider-thumb]:appearance-none
-                        [&::-webkit-slider-thumb]:w-4
-                        [&::-webkit-slider-thumb]:h-4
-                        [&::-webkit-slider-thumb]:rounded-full
-                        [&::-webkit-slider-thumb]:bg-[var(--accent-gold)]
-                        [&::-webkit-slider-thumb]:cursor-pointer
-                        [&::-webkit-slider-thumb]:border-2
-                        [&::-webkit-slider-thumb]:border-[var(--bg-primary)]"
+                    onChange={value => onResonanceChange(value / 100)}
+                    accentColor="var(--accent-gold)"
+                    ariaLabel="Tanpura sustain"
                 />
             </div>
 

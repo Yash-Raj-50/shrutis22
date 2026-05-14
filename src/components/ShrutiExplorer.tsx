@@ -9,6 +9,7 @@ import { Shruti, SwaraName } from '@/types';
 import { SHRUTIS } from '@/constants/shrutis';
 import { ShrutiPlayer } from '@/audio/TanpuraEngine';
 import { SectionHeader } from './SectionHeader';
+import { SteppedSlider } from './SteppedSlider';
 
 interface ShrutiExplorerProps {
     baseFrequency: number;
@@ -262,8 +263,8 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
         <div className="h-full flex flex-col">
             {/* Header */}
             <SectionHeader
-                title="Explore the 22 Shrutis"
-                hindiTitle="श्रुतियों को देखें"
+                title="Play the 22 Shrutis"
+                hindiTitle="श्रुतियों को बजाएं"
                 description="Play, compare, and recognize each shruti across the octave."
             />
 
@@ -299,19 +300,14 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                 {/* Volume slider */}
                 <div className="flex items-center gap-3">
                     <span className="text-[var(--text-secondary)] text-sm">Volume:</span>
-                    <input
-                        type="range"
-                        min="0"
-                        max="100"
+                    <SteppedSlider
+                        min={0}
+                        max={100}
+                        step={5}
                         value={volume * 100}
-                        onChange={e => onVolumeChange(Number(e.target.value) / 100)}
-                        className="w-24 h-2 bg-[var(--bg-tertiary)] rounded-lg appearance-none cursor-pointer
-                            [&::-webkit-slider-thumb]:appearance-none
-                            [&::-webkit-slider-thumb]:w-4
-                            [&::-webkit-slider-thumb]:h-4
-                            [&::-webkit-slider-thumb]:rounded-full
-                            [&::-webkit-slider-thumb]:bg-[var(--accent-saffron)]
-                            [&::-webkit-slider-thumb]:cursor-pointer"
+                        onChange={value => onVolumeChange(value / 100)}
+                        className="w-28"
+                        ariaLabel="Shruti explorer volume"
                     />
                     <span className="text-[var(--accent-saffron)] font-mono text-sm w-10">
                         {Math.round(volume * 100)}%
@@ -321,19 +317,14 @@ export function ShrutiExplorer({ baseFrequency, volume, resonance, onVolumeChang
                 {/* Sustain slider */}
                 <div className="flex items-center gap-3">
                     <span className="text-[var(--text-secondary)] text-sm">Sustain:</span>
-                    <input
-                        type="range"
-                        min="0"
-                        max="100"
+                    <SteppedSlider
+                        min={0}
+                        max={100}
+                        step={5}
                         value={resonance * 100}
-                        onChange={e => onResonanceChange?.(Number(e.target.value) / 100)}
-                        className="w-24 h-2 bg-[var(--bg-tertiary)] rounded-lg appearance-none cursor-pointer
-                            [&::-webkit-slider-thumb]:appearance-none
-                            [&::-webkit-slider-thumb]:w-4
-                            [&::-webkit-slider-thumb]:h-4
-                            [&::-webkit-slider-thumb]:rounded-full
-                            [&::-webkit-slider-thumb]:bg-[var(--accent-saffron)]
-                            [&::-webkit-slider-thumb]:cursor-pointer"
+                        onChange={value => onResonanceChange?.(value / 100)}
+                        className="w-28"
+                        ariaLabel="Shruti explorer sustain"
                     />
                     <span className="text-[var(--accent-saffron)] font-mono text-sm w-10">
                         {Math.round(resonance * 100)}%

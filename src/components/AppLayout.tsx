@@ -4,12 +4,14 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Sidebar, SectionId } from './Sidebar';
 import { TanpuraSection } from './TanpuraPage';
 import { ShrutiExplorer } from './ShrutiExplorer';
 import { LearnPage } from './LearnPage';
 import { SettingsPage } from './SettingsPage';
+import { ShortcutHelpModal } from './ShortcutHelpModal';
+import { useTanpura } from '@/hooks/useTanpura';
 
 // Global audio settings
 interface GlobalAudioSettings {
@@ -22,67 +24,71 @@ export function AppLayout() {
     const [activeSection, setActiveSection] = useState<SectionId>('tanpura');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+    const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
     const [audioSettings, setAudioSettings] = useState<GlobalAudioSettings>({
         baseFrequency: 261.63, // C4
         masterVolume: 1,
         resonance: 0.5, // 50% sustain - already very resonant
     });
+    
+    // Global tanpura instance - persists across section changes
+    const globalTanpura = useTanpura({
+        baseFrequency: audioSettings.baseFrequency,
+        masterVolume: audioSettings.masterVolume,
+        resonance: audioSettings.resonance,
+    });
 
-    const updateAudioSettings = (updates: Partial<GlobalAudioSettings>) => {
+    const updateAudioSettings = useCallback((updates: Partial<GlobalAudioSettings>) => {
         setAudioSettings(prev => ({ ...prev, ...updates }));
-    };
+    }, []);
 
-    const handleSectionChange = (section: SectionId) => {
+    const handleSectionChange = useCallback((section: SectionId) => {
         setActiveSection(section);
         setIsSidebarOpen(false);
-    };
+    }, []);
 
-    const renderContent = () => {
-        switch (activeSection) {
-            case 'tanpura':
-                return (
-                    <TanpuraSection
-                        globalSettings={audioSettings}
-                        onSettingsChange={updateAudioSettings}
-                    />
-                );
-            case 'explore':
-                return (
-                    <ShrutiExplorer
-                        baseFrequency={audioSettings.baseFrequency}
-                        volume={audioSettings.masterVolume}
-                        resonance={audioSettings.resonance}
-                        onVolumeChange={(vol) => updateAudioSettings({ masterVolume: vol })}
-                        onResonanceChange={(res) => updateAudioSettings({ resonance: res })}
-                    />
-                );
-            case 'learn':
-                return (
-                    <LearnPage
-                        baseFrequency={audioSettings.baseFrequency}
-                        volume={audioSettings.masterVolume}
-                    />
-                );
-            case 'settings':
-                return (
-                    <SettingsPage
-                        baseFrequency={audioSettings.baseFrequency}
-                        masterVolume={audioSettings.masterVolume}
-                        resonance={audioSettings.resonance}
-                        onBaseFrequencyChange={(freq) => updateAudioSettings({ baseFrequency: freq })}
-                        onVolumeChange={(vol) => updateAudioSettings({ masterVolume: vol })}
-                        onResonanceChange={(res) => updateAudioSettings({ resonance: res })}
-                    />
-                );
-            default:
-                return (
-                    <TanpuraSection
-                        globalSettings={audioSettings}
-                        onSettingsChange={updateAudioSettings}
-                    />
-                );
+    const handleTanpuraToggle = useCallback(async () => {
+        if (!globalTanpura.isInitialized) {
+            await globalTanpura.initialize();
         }
-    };
+        globalTanpura.togglePlay();
+    }, [globalTanpura]);
+
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (
+                event.target instanceof HTMLInputElement ||
+                event.target instanceof HTMLTextAreaElement ||
+                event.target instanceof HTMLSelectElement
+            ) {
+                return;
+            }
+
+            if (event.altKey && event.code === 'KeyT') {
+                event.preventDefault();
+                handleTanpuraToggle();
+                return;
+            }
+
+            if (!event.altKey) return;
+
+            const sectionMap: Record<string, SectionId> = {
+                Digit1: 'tanpura',
+                Digit2: 'explore',
+                Digit3: 'learn',
+                Digit4: 'settings',
+            };
+
+            const nextSection = sectionMap[event.code];
+            if (!nextSection) return;
+
+            event.preventDefault();
+            handleSectionChange(nextSection);
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [handleSectionChange, handleTanpuraToggle]);
 
     return (
         <div className="flex flex-row-reverse h-screen overflow-hidden indian-pattern-overlay">
@@ -94,6 +100,10 @@ export function AppLayout() {
                 isCollapsed={isSidebarCollapsed}
                 onClose={() => setIsSidebarOpen(false)}
                 onToggleCollapse={() => setIsSidebarCollapsed(prev => !prev)}
+                tanpuraIsPlaying={globalTanpura.isPlaying}
+                tanpuraIsInitialized={globalTanpura.isInitialized}
+                onTanpuraToggle={handleTanpuraToggle}
+                onShowShortcuts={() => setIsShortcutModalOpen(true)}
             />
 
             {/* Main Content Area */}
@@ -115,7 +125,7 @@ export function AppLayout() {
                         <div className="text-right min-w-0">
                             <div className="text-sm font-medium text-[var(--text-primary)] truncate">
                                 {activeSection === 'tanpura' && 'Tanpura'}
-                                {activeSection === 'explore' && 'Explore Shrutis'}
+                                {activeSection === 'explore' && 'Play Shrutis'}
                                 {activeSection === 'learn' && 'Learn & Quiz'}
                                 {activeSection === 'settings' && 'Settings'}
                             </div>
@@ -126,10 +136,48 @@ export function AppLayout() {
 
                 {/* Content */}
                 <div className="flex-1 overflow-hidden">
-                    {renderContent()}
+                    <div className={activeSection === 'tanpura' ? 'h-full' : 'hidden'} aria-hidden={activeSection !== 'tanpura'}>
+                        <TanpuraSection
+                            onSettingsChange={updateAudioSettings}
+                            tanpura={globalTanpura}
+                            isActive={activeSection === 'tanpura'}
+                        />
+                    </div>
+
+                    {activeSection === 'explore' && (
+                        <ShrutiExplorer
+                            baseFrequency={audioSettings.baseFrequency}
+                            volume={audioSettings.masterVolume}
+                            resonance={audioSettings.resonance}
+                            onVolumeChange={(vol) => updateAudioSettings({ masterVolume: vol })}
+                            onResonanceChange={(res) => updateAudioSettings({ resonance: res })}
+                        />
+                    )}
+
+                    {activeSection === 'learn' && (
+                        <LearnPage
+                            baseFrequency={audioSettings.baseFrequency}
+                            volume={audioSettings.masterVolume}
+                        />
+                    )}
+
+                    {activeSection === 'settings' && (
+                        <SettingsPage
+                            baseFrequency={audioSettings.baseFrequency}
+                            masterVolume={audioSettings.masterVolume}
+                            resonance={audioSettings.resonance}
+                            onBaseFrequencyChange={(freq) => updateAudioSettings({ baseFrequency: freq })}
+                            onVolumeChange={(vol) => updateAudioSettings({ masterVolume: vol })}
+                            onResonanceChange={(res) => updateAudioSettings({ resonance: res })}
+                        />
+                    )}
                 </div>
 
             </main>
+            <ShortcutHelpModal
+                isOpen={isShortcutModalOpen}
+                onClose={() => setIsShortcutModalOpen(false)}
+            />
         </div>
     );
 }

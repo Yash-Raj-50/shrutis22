@@ -15,8 +15,8 @@ interface TanpuraStringProps {
     isPlaying: boolean;
     isPlucking?: boolean;
     onSelect: (index: number) => void;
-    onToggleActive: (index: number) => void;
     onEdit?: (index: number) => void;
+    editButtonOnly?: boolean;
 }
 
 // Warm colors matching Indian aesthetic
@@ -37,8 +37,8 @@ export function TanpuraStringComponent({
     isPlaying,
     isPlucking = false,
     onSelect,
-    onToggleActive,
     onEdit,
+    editButtonOnly = false,
 }: TanpuraStringProps) {
     const shruti = getShrutiById(string.shrutiId);
 
@@ -50,9 +50,10 @@ export function TanpuraStringComponent({
     return (
         <div
             className={`
-                relative flex flex-col items-center p-4 rounded-xl cursor-pointer
+                relative flex flex-col items-center p-4 rounded-xl
                 transition-all duration-200 ease-in-out
                 border
+                cursor-pointer
                 ${isSelected
                     ? 'border-[var(--accent-saffron)] bg-[var(--bg-tertiary)]'
                     : 'border-[var(--border-color)] bg-[var(--bg-card)] hover:bg-[var(--bg-tertiary)] hover:border-[var(--border-light)]'
@@ -60,7 +61,7 @@ export function TanpuraStringComponent({
                 ${!string.isActive ? 'opacity-50' : ''}
             `}
             onClick={(e) => {
-                if (e.shiftKey && onEdit) {
+                if (!editButtonOnly && e.shiftKey && onEdit) {
                     onEdit(index);
                 } else {
                     onSelect(index);
@@ -72,24 +73,21 @@ export function TanpuraStringComponent({
                 {index + 1}
             </div>
 
-            {/* Mute button */}
-            <button
-                className={`
-                    absolute top-2 right-2 w-6 h-6 rounded-full text-xs
-                    transition-all duration-150 flex items-center justify-center
-                    ${string.isActive
-                        ? 'bg-[var(--accent-saffron)]/20 text-[var(--accent-saffron)] border border-[var(--accent-saffron)]/40'
-                        : 'bg-[var(--bg-tertiary)] text-[var(--text-muted)] border border-[var(--border-color)]'
-                    }
-                `}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleActive(index);
-                }}
-                title={string.isActive ? 'Mute string' : 'Unmute string'}
-            >
-                {string.isActive ? '♪' : '−'}
-            </button>
+            {onEdit && (
+                <button
+                    className="absolute top-2 right-2 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--accent-saffron)]/40 bg-[var(--accent-saffron)]/12 text-[var(--accent-saffron)] transition-colors hover:bg-[var(--accent-saffron)]/20"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(index);
+                    }}
+                    title="Change shruti"
+                    aria-label={`Change shruti for string ${index + 1}`}
+                >
+                    <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 3a1 1 0 011 1v8.382a3.5 3.5 0 11-2 3.118V8h-1a1 1 0 110-2h1V4a1 1 0 011-1z" />
+                    </svg>
+                </button>
+            )}
 
             {/* String visualization - vertical line like tanpura string */}
             <div className="relative h-28 flex items-center justify-center mb-3">

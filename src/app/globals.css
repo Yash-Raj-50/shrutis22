@@ -188,6 +188,26 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
+.stepped-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--slider-accent);
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
+.stepped-slider::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--slider-accent);
+  border: 2px solid var(--bg-card);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+
 ::selection {
   background: var(--selection-bg);
   color: var(--selection-text);

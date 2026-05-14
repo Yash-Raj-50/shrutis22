@@ -6,7 +6,7 @@ import * as Tone from 'tone';
 import { calculateFrequency } from '@/types';
 import { getShrutiById } from '@/constants/shrutis';
 
-const OUTPUT_GAIN_BOOST = 2.75;
+const OUTPUT_GAIN_BOOST = 5.5;
 
 /**
  * QuizAudioEngine - Plays individual notes or sequences for quiz questions

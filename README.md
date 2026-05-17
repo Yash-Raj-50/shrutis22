@@ -12,7 +12,7 @@ In Indian classical music, an octave is divided into 22 shrutis — subtle micro
 
 ### 🎼 Shruti Explorer
 Browse and listen to all 22 shrutis with their traditional frequency ratios. Each shruti displays:
-- Traditional name and short notation (S, r1, r2, R1, R2, g1, g2, G1, G2, m1, m2, M1, M2, P, d1, d2, D1, D2, n1, n2, N1, N2, S')
+- Traditional name and short notation (S, r1, r2, R1, R2, g1, g2, G1, G2, M1, M2, m1, m2, P, d1, d2, D1, D2, n1, n2, N1, N2, S')
 - Mathematical ratio based on classical Indian music theory
 - Western note approximation
 - Parent swara (Sa, Re, Ga, Ma, Pa, Dha, Ni)

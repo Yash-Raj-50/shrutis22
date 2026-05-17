@@ -58,7 +58,7 @@ export const QUIZ_STAGES: QuizStage[] = [
         description: 'Add Shuddha Madhyam (Ma) - the perfect fourth',
         order: 4,
         questionType: 'single-shruti',
-        availableShrutis: [1, 10, 14], // Sa, m1 (Shuddha Ma), Pa
+        availableShrutis: [1, 10, 14], // Sa, M1 (Shuddha Ma), Pa
         questionsPerRound: 8,
         requiredCorrect: 6,
         isUnlocked: false,
@@ -99,7 +99,7 @@ export const QUIZ_STAGES: QuizStage[] = [
         description: 'All 7 shuddha swaras - equivalent to major scale',
         order: 7,
         questionType: 'single-shruti',
-        availableShrutis: [1, 5, 8, 10, 14, 17, 21], // Sa R2 G1 m1 Pa D1 N1
+        availableShrutis: [1, 5, 8, 10, 14, 17, 21], // Sa R2 G1 M1 Pa D1 N1
         questionsPerRound: 12,
         requiredCorrect: 9,
         isUnlocked: false,
@@ -140,7 +140,7 @@ export const QUIZ_STAGES: QuizStage[] = [
         description: 'Learn the sharp Madhyam',
         order: 10,
         questionType: 'single-shruti',
-        availableShrutis: [1, 10, 13, 14], // Sa, m1, M2, Pa
+        availableShrutis: [1, 10, 13, 14], // Sa, M1, m2, Pa
         questionsPerRound: 10,
         requiredCorrect: 8,
         isUnlocked: false,
@@ -155,7 +155,7 @@ export const QUIZ_STAGES: QuizStage[] = [
         description: 'Recognize simple 2-note melodic movements',
         order: 11,
         questionType: 'shruti-sequence',
-        availableShrutis: [1, 5, 8, 10, 14], // Sa R2 G1 m1 Pa
+        availableShrutis: [1, 5, 8, 10, 14], // Sa R2 G1 M1 Pa
         questionsPerRound: 8,
         requiredCorrect: 6,
         sequenceLength: 2,

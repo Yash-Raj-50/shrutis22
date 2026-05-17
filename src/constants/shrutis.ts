@@ -117,7 +117,7 @@ export const SHRUTIS: Shruti[] = [
     {
         id: 10,
         name: 'Shuddha Madhyam 1',
-        shortName: 'm1',
+        shortName: 'M1',
         ratio: [4, 3],
         cents: 498.04,
         parentSwara: 'Ma',
@@ -127,7 +127,7 @@ export const SHRUTIS: Shruti[] = [
     {
         id: 11,
         name: 'Shuddha Madhyam 2',
-        shortName: 'm2',
+        shortName: 'M2',
         ratio: [27, 20],
         cents: 519.55,
         parentSwara: 'Ma',
@@ -137,7 +137,7 @@ export const SHRUTIS: Shruti[] = [
     {
         id: 12,
         name: 'Teevra Madhyam 1',
-        shortName: 'M1',
+        shortName: 'm1',
         ratio: [45, 32],
         cents: 590.22,
         parentSwara: 'Ma',
@@ -147,7 +147,7 @@ export const SHRUTIS: Shruti[] = [
     {
         id: 13,
         name: 'Teevra Madhyam 2',
-        shortName: 'M2',
+        shortName: 'm2',
         ratio: [729, 512],
         cents: 611.73,
         parentSwara: 'Ma',

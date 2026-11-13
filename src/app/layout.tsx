@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,20 +19,18 @@ export const metadata: Metadata = {
   keywords: ["tanpura", "shruti", "indian classical music", "drone", "raag", "raga", "music practice"],
 };
 
-// Script to prevent flash of wrong theme
+// Apply the saved theme before React hydrates to prevent a light-theme flash.
 const themeScript = `
   (function() {
     try {
       const theme = localStorage.getItem('22shrutis-theme');
-      if (theme === 'dark') {
+      const shouldUseDarkTheme = theme === 'dark'
+        || (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+      if (shouldUseDarkTheme) {
         document.documentElement.setAttribute('data-theme', 'dark');
-      } else if (theme === 'light') {
-        document.documentElement.removeAttribute('data-theme');
       } else {
-        // System preference or no saved theme
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        }
+        document.documentElement.removeAttribute('data-theme');
       }
     } catch (e) {}
   })();
@@ -49,7 +48,9 @@ export default function RootLayout({
           name="google-site-verification"
           content="xgDmSek1o0dc4UG5BhRiKi7eB-0jcQmZTNkLP6zhVXM"
         />
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <Script id="theme-script" strategy="beforeInteractive">
+          {themeScript}
+        </Script>
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

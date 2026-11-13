@@ -167,14 +167,23 @@ export function Sidebar({
                 <nav className="flex-1 p-4 space-y-2">
                     {navItems.map(item => (
                         <div key={item.id}>
-                            <button
+                            <div
                                 onClick={() => {
                                     if (item.available) {
                                         onSectionChange(item.id);
                                         onClose();
                                     }
                                 }}
-                                disabled={!item.available}
+                                onKeyDown={(event) => {
+                                    if (item.available && (event.key === 'Enter' || event.key === ' ')) {
+                                        event.preventDefault();
+                                        onSectionChange(item.id);
+                                        onClose();
+                                    }
+                                }}
+                                role="button"
+                                tabIndex={item.available ? 0 : -1}
+                                aria-disabled={!item.available}
                                 className={`
                                 w-full flex items-center justify-between px-4 py-3 rounded-lg
                                 transition-all duration-200 text-left
@@ -236,7 +245,7 @@ export function Sidebar({
                                         </button>
                                     )}
                                 </div>
-                            </button>
+                            </div>
 
                         </div>
                     ))}

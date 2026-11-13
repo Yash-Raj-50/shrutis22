@@ -4,7 +4,7 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SectionHeader } from './SectionHeader';
 import { SteppedSlider } from './SteppedSlider';
 
@@ -12,6 +12,20 @@ const PROGRESS_STORAGE_KEY = '22shrutis-quiz-progress';
 const THEME_STORAGE_KEY = '22shrutis-theme';
 
 type Theme = 'light' | 'dark' | 'system';
+
+function applyTheme(theme: Theme) {
+  if (theme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    return;
+  }
+
+  if (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    return;
+  }
+
+  document.documentElement.removeAttribute('data-theme');
+}
 
 interface SettingsPageProps {
   baseFrequency: number;
@@ -44,13 +58,19 @@ export function SettingsPage({
 }: SettingsPageProps) {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem(THEME_STORAGE_KEY) as Theme | null) || 'system';
-    }
+  const [theme, setTheme] = useState<Theme>('system');
 
-    return 'system';
-  });
+  // Read the saved preference after hydration so the server and client render
+  // the same initial markup, while the layout script handles first paint.
+  useEffect(() => {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    const initialTheme: Theme = savedTheme === 'light' || savedTheme === 'dark' || savedTheme === 'system'
+      ? savedTheme
+      : 'system';
+
+    applyTheme(initialTheme);
+    queueMicrotask(() => setTheme(initialTheme));
+  }, []);
 
   // Apply theme changes
   const handleThemeChange = (newTheme: Theme) => {
@@ -58,20 +78,7 @@ export function SettingsPage({
 
     if (typeof window !== 'undefined') {
       localStorage.setItem(THEME_STORAGE_KEY, newTheme);
-
-      if (newTheme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      } else if (newTheme === 'light') {
-        document.documentElement.removeAttribute('data-theme');
-      } else {
-        // System preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (prefersDark) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-        } else {
-          document.documentElement.removeAttribute('data-theme');
-        }
-      }
+      applyTheme(newTheme);
     }
   };
 

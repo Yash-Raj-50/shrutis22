@@ -20,6 +20,8 @@ interface GlobalAudioSettings {
     resonance: number;
 }
 
+const THEME_STORAGE_KEY = '22shrutis-theme';
+
 export function AppLayout() {
     const [activeSection, setActiveSection] = useState<SectionId>('tanpura');
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -30,6 +32,21 @@ export function AppLayout() {
         masterVolume: 1,
         resonance: 0.5, // 50% sustain - already very resonant
     });
+
+    // Re-apply the persisted preference on the client as a fallback for
+    // browsers that delay or disable inline before-interactive scripts.
+    useEffect(() => {
+        const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const shouldUseDarkTheme = savedTheme === 'dark'
+            || (savedTheme !== 'light' && prefersDark);
+
+        if (shouldUseDarkTheme) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+    }, []);
     
     // Global tanpura instance - persists across section changes
     const globalTanpura = useTanpura({
